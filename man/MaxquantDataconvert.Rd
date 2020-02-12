@@ -99,10 +99,10 @@ db1.path, db2.path, out.folder are both need the complete path. Out.folder and d
 data(Sample_ID_data)
 if(requireNamespace("Biostrings", quietly = TRUE)){
   out.folder = tempdir();
-  Biostrings::writeXStringSet(Sample_ID_data$db1,
-                              filepath = file.path(out.folder,"db1.fasta"))
-  Biostrings::writeXStringSet(Sample_ID_data$db2,
-                              filepath = file.path(out.folder,"db2.fasta"))
+  write.table(Sample_ID_data$db1,file.path(out.folder,"db1.fasta"),
+              quote = FALSE,row.names = FALSE, col.names = FALSE);
+  write.table(Sample_ID_data$db2,file.path(out.folder,"db1.fasta"),
+              quote = FALSE,row.names = FALSE, col.names = FALSE);
   write.table(Sample_ID_data$pginf,
               file = file.path(out.folder,"proteingroups.txt"),
               quote = FALSE,

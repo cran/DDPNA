@@ -9,9 +9,12 @@ Module_Enrich <- function(module, classifiedID, enrichtype = "FCS",
   mod.name = NULL; pvalue = NULL; precentage = NULL;
   fcnum = NULL; modnum = NULL; Z = NULL;
   moduleNum <- module$moduleNum; #190607
-  module$moduleNum <- as.character(module$moduleNum);#190607
-  moduleName <- levels(as.factor(module$moduleNum));#190607
-  if (is.numeric(moduleNum)) moduleName <- as.numeric(moduleName);#190607
+  if (is.numeric(moduleNum))  #191105
+    moduleName <- levels(as.factor(module$moduleNum)) else {
+      module$moduleNum <- as.character(module$moduleNum);#190607
+      moduleName <- levels(as.factor(module$moduleNum));#190607
+    }
+  # if (is.numeric(moduleNum)) moduleName <- as.numeric(moduleName);#190607
   im <- length(moduleName);#190607
   #im <- length(table(module$moduleNum));
   classifiedID <- classifiedID[!duplicated(classifiedID)] #20190512

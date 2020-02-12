@@ -112,6 +112,7 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
     data_deoutlier <- try(.OutlierDetect(data_imp, iteration = iteration,
                                          outlierdata = outlierdata,
                                          distmethod = distmethod, A.IAC = A.IAC,
+                                         maxNAratio = maxNAratio,
                                          miss.value = miss.value, sdout = sdout,
                                          dohclust = dohclust, treelabels = treelabels,
                                          plot = plot, filename = filename,
@@ -159,6 +160,7 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
 }
 
 #NA number count
+#190716 fix the problem when use the function more than one time will appear many NA_num column
 .NAnum.proteomic_data <- function(data, miss.value = NA, colmax = 0.8, verbose = 1){
   #calculate NA number every column
   if (is.numeric(miss.value)){
@@ -191,6 +193,7 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
                               %*% rep(1, ncol(data$intensity))));
   }
   else { stop ("wrong missing value setting"); }
+  if(any(colnames(data$inf) == "NA_num")) data$inf <- data$inf[ ,-which(colnames(data$inf) == "NA_num")]; #190716
   data$inf <- data.frame(data$inf, NA_num, stringsAsFactors = FALSE);
   data
 }
@@ -213,7 +216,7 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
   pos <- which(NA_num <= n);
   row_name <- row.names(data$inf)[pos];
   extract2.proteomic_data <- function(x, row_num){
-    #查找row_num在x$inf矩阵中行名中的位置，依据row_num顺序显示
+    #serach postion row_num in x $inf, ordered by row_num
     row <- match(row_num, row.names(x$inf));
     inf <- x$inf[row, ];
     intensity <- x$intensity[row, ];
@@ -344,9 +347,11 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
 
 
 
-
+#190615 fix a bug when doclust, it will error use the previous function
+#190716 fix outlier detect problem when miss.value is not NA, the outlier detect will different.
 .OutlierDetect <- function(data, iteration = NA, outlierdata = "intensity",
                            distmethod = "manhattan", A.IAC = FALSE,
+                           maxNAratio = 0.5,
                            miss.value = NA, sdout = 2,
                            dohclust = FALSE, treelabels = NA,
                            plot = TRUE, filename = NULL,
@@ -359,6 +364,7 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
                            c("intensity","relative_value","log2_value"));
   if (outlierdata != "intensity") data <- .proteomic_data(data$inf, data$intensity);
   outliersample = 1; outlier = NULL; iter = 0;
+  if (!is.na(miss.value)) data[[outlierdata]][data[[outlierdata]] == miss.value] <- NA; #190716
   while (outliersample > 0){
     iter <- iter + 1;
     if (distmethod == "correlation")
@@ -419,13 +425,16 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
     outlier <- c(outlier, out_name);
     if (outliersample > 0) {
       data$intensity <- data$intensity[ ,-out_pos];
+      treelabels <- treelabels[-out_pos];#190615
       data$inf <- data$inf[ ,-which(colnames(data$inf) == "NA_num")];
-      data <- .NAnum.proteomic_data(data, miss.value = miss.value);
-      data <- .deNA2.proteomic_data(data, trunc(0.5*ncol(data$intensity)));
+      #data <- .NAnum.proteomic_data(data, miss.value = miss.value);
+      data <- .NAnum.proteomic_data(data, miss.value = NA);#190716
+      data <- .deNA2.proteomic_data(data, trunc(maxNAratio*ncol(data$intensity)));
       if (outlierdata != "intensity")
         data <- .proteomic_data(data$inf, data$intensity);
     }
-    if (!is.na(iteration) & iter >= iteration) outliersample <- 0;
+    if (!is.na(iteration) & iter >= iteration) outliersample <- 0; #190716
   }
+  if (!is.na(miss.value)) data[[outlierdata]][is.na(data[[outlierdata]])] <- miss.value; #190716
   list(outlier = outlier, data = data)
 }

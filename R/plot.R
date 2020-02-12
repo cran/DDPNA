@@ -57,9 +57,10 @@ FCSenrichplot <- function(FCSenrich, count = 1, p = 0.05, filter = "p",
 
 
 
-DEP_Mod_HeatMap <- function(DEP_Mod, filter = c("p","p.adj"),
+DEP_Mod_HeatMap <- function(DEP_Mod, xlab = "DEP", filter = c("p","p.adj"),
                             cutoff = 0.05, filename = NULL, ...) {
   filter <- match.arg(filter, c("p","p.adj"));
+  xlab <- match.arg(xlab,c("Mod","DEP"));#191118
   if (!is.list(DEP_Mod)) stop("DEP_Mod is not the list class.")
   x <- matrix(data = NA, nrow = length(DEP_Mod[[1]][[1]]), ncol = length(DEP_Mod))
   x <- as.data.frame(x)
@@ -103,6 +104,11 @@ DEP_Mod_HeatMap <- function(DEP_Mod, filter = c("p","p.adj"),
   ratio <- colSums(connect$Counts) / colSums(connect$module.size)
   #precent2 <- apply(precent, 1, function(x) x/ratio/100)
   enrichFold <- t(t(precent)/ratio/100)
+  if (xlab == "Mod") {
+    enrichFold <- t(enrichFold);
+    textMatrix <- t(textMatrix);
+    p <- t(p);
+    } #191118 allow switch x and y axis.
   if (!is.null(filename)) pdf(paste0("plot/",filename,".pdf"))
   WGCNA::labeledHeatmap(Matrix = enrichFold, xLabels = colnames(p),
                         yLabels = rownames(p),

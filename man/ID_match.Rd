@@ -62,10 +62,10 @@ data should have colname: ori.ID, ENTRY.NAME.
 data(Sample_ID_data)
 if(requireNamespace("Biostrings", quietly = TRUE)){
   out.folder = tempdir();
-  Biostrings::writeXStringSet(Sample_ID_data$db1,
-                              filepath = file.path(out.folder,"db1.fasta"))
-  Biostrings::writeXStringSet(Sample_ID_data$db2,
-                              filepath = file.path(out.folder,"db2.fasta"))
+  write.table(Sample_ID_data$db1,file.path(out.folder,"db1.fasta"),
+              quote = FALSE,row.names = FALSE, col.names = FALSE);
+  write.table(Sample_ID_data$db2,file.path(out.folder,"db1.fasta"),
+              quote = FALSE,row.names = FALSE, col.names = FALSE);
   data <- ID_match(Sample_ID_data$ID_match_data,
                    db1.path = file.path(out.folder,"db1.fasta"),
                    db2.path = file.path(out.folder,"db2.fasta"),
