@@ -57,7 +57,7 @@ groupmean <- function(data, group, method = c("mean","median"), name = TRUE){
   for(i in 1:nlevels(group)){
     pos <- which(group == levels(group)[i]);
     if (length(pos) > 1) { #20190730
-      mean <- apply(data[ , pos], 1, met, na.rm = T); #20190514
+      mean <- apply(data[ , pos], 1, met, na.rm = TRUE); #20190514
     }
     if (length(pos) == 1) mean <- data[ , pos]; #20190730
     if (is.null(mean.matrix)) mean.matrix <- data.frame(mean)

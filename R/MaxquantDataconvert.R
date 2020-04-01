@@ -568,7 +568,7 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
     }
     if(type == 2){
       protein_inf <- data.frame(matrix(unlist(strsplit(protein_inf, split = "\\|")),
-                                       ncol = 3,byrow = T),
+                                       ncol = 3,byrow = TRUE),
                                 stringsAsFactors = FALSE);
       names(protein_inf) <- c("status", "Uniprot.ID", "ENTRY-NAME");
       #extract entryname and GN

@@ -2,8 +2,8 @@ Package: DDPNA
 Type: Package
 Title: Disease-Related Differential Proteins and Co-Expression Network
         Analysis
-Version: 0.2.3
-Date: 2020-2-12
+Version: 0.2.4
+Date: 2020-3-27
 Authors@R: c(person("Kefu","Liu",email="liukefu19@163.com",role=c("aut","cre")))
 Author: Kefu Liu [aut, cre]
 Maintainer: Kefu Liu <liukefu19@163.com>
@@ -24,6 +24,6 @@ Depends: R (>= 3.5)
 LazyData: true
 RoxygenNote: 6.1.1
 NeedsCompilation: no
-Packaged: 2020-02-12 13:30:32 UTC; lkf
+Packaged: 2020-03-31 23:31:37 UTC; lkf
 Repository: CRAN
-Date/Publication: 2020-02-12 14:20:06 UTC
+Date/Publication: 2020-04-01 14:10:10 UTC

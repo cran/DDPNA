@@ -3,7 +3,7 @@
 #allow extract 2 or more Modules to as a big net
 #the previous code will show the wrong result when extract 2 or more Modules
 #190612 fix the error when PFG is not the whole mod.name
-
+#200327 fix the bug occur in 190612 added function.
 getmoduleHub <- function(data, module, mod_num, coln = "new.ID",
                          cor.sig = 0.05, cor.r = 0,
                          adjustp = TRUE, hub.p = 0.05){
@@ -29,8 +29,8 @@ getmoduleHub <- function(data, module, mod_num, coln = "new.ID",
   el <- calculate.PFN(cor_order[,1:3], doPar = FALSE, num.cores = 1);
   gg <- graph.data.frame(el, directed = FALSE);
   #plot(gg)
-  mod.name.net <- c(el[,1], el[,2]); #190612
-  mod.name.net <- mod.name.net[!duplicated(mod.name.net)]; #190612
+  mod.name.net <- unique(c(as.character(el[, 1]),as.character(el[, 2])));#200327
+  #factor format, it may get wrong result #mod.name.net <- c(el[,1], el[,2]);mod.name.net <- mod.name.net[!duplicated(mod.name.net)]; #190612
   subnet <- induced.subgraph(gg, mod.name.net); #190612
   #subnet <- induced.subgraph(gg, mod.name);
   Stat <- get.DegreeHubStatistic(subnet, n.perm = 100);
@@ -174,6 +174,7 @@ DEPsets <- function(datalist,colors = c("red","green","blue")){
 #190611 add value BranchCut, a logical value indicating whether remove proteins
 #which have no connection to DEPs.
 # 190611 fix a bug that the proteins only choose el$from when reconstructNet.
+#20200327 when no reconstructNet and no change when do removehub and branchcut, only plot one time.
 DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                              data = NULL, module = NULL,
                              plot = TRUE,
@@ -271,8 +272,7 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
     }
     #not reconstrunction PFG and replot
     #IDs in DEPsets which have no any connection will not showed in picture
-    if (!reconstructNet)
-    {
+    if (!reconstructNet) {
       node.features<- plot_subgraph(module = ModNet$degreeStat$gene,
                                     hub = ModNet$hub, PFN = ModNet$PMFG,
                                     node.default.color = "grey",
@@ -291,15 +291,17 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
       el <- as_data_frame(ModNet$PMFG);
       el2 <- el[!(el[,1] %in% removedHub | el[,2]  %in% removedHub), ];
       if (BranchCut) {
-        markedID<- as.character(node.features$id[node.features$node.stat !="NA"])
+        markedID <- as.character(node.features$id[node.features$node.stat !="NA"])
         el2 <- el2[el2$from %in% markedID | el2$to %in% markedID, ]
       }
       PMFG <- graph.data.frame(el2, directed = FALSE);
       hubs <- ModNet$hub[!ModNet$hub %in% removedHub];
-      modulegene <- c(as.character(el2[,1]),as.character(el2[,2]))
-      modulegene <- as.factor(modulegene);
-      modulegene <- levels(modulegene);
-      if (plot | OnlyPlotLast) {
+      modulegene <- unique(c(as.character(el2[,1]),as.character(el2[,2])));#20200327
+      #modulegene <- as.factor(modulegene); modulegene <- levels(modulegene);
+      if (length(removedHub) == 0 )
+        warning("all Hubs ID belong IDsets.")
+      if(nrow(el2) == nrow(el) & plot) OnlyPlotLast = plot = FALSE;#20200327
+      if (plot | OnlyPlotLast ) {
         pic <- plot_subgraph(module = modulegene,
                              hub = hubs, PFN = PMFG,
                              node.default.color = node.default.color,
@@ -322,15 +324,11 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
         }
         else print(pic$pnet)
       }
-      if (length(removedHub) == 0 )
-        warning("all Hubs ID belong IDsets.")
-
     }
     #reconstrunction PFG and replot
     #remove unDEPsets hubs ID and related unDEPsets ID.
     #the function can run a cycle until no unDEPsets hubs.
-    if (reconstructNet)
-    {
+    if (reconstructNet) {
       node.features<- plot_subgraph(module = ModNet$degreeStat$gene,
                                     hub = ModNet$hub, PFN = ModNet$PMFG,
                                     node.default.color = node.default.color,

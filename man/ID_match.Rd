@@ -64,7 +64,7 @@ if(requireNamespace("Biostrings", quietly = TRUE)){
   out.folder = tempdir();
   write.table(Sample_ID_data$db1,file.path(out.folder,"db1.fasta"),
               quote = FALSE,row.names = FALSE, col.names = FALSE);
-  write.table(Sample_ID_data$db2,file.path(out.folder,"db1.fasta"),
+  write.table(Sample_ID_data$db2,file.path(out.folder,"db2.fasta"),
               quote = FALSE,row.names = FALSE, col.names = FALSE);
   data <- ID_match(Sample_ID_data$ID_match_data,
                    db1.path = file.path(out.folder,"db1.fasta"),
