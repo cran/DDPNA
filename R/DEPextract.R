@@ -35,8 +35,9 @@ modpcomp <- function(data, colors, nPC = 2,
           theme_bw();}
       if ( all(class(pic)!="try-error") ) {
         if (is.character(filename) & length(filename) == 1){
-          if (!dir.exists("plot")) dir.create("plot");
-          pdf(paste0("plot/", filename, " PCA plot mod", i, ".pdf"))
+          #if (!dir.exists("plot")) dir.create("plot");
+          #pdf(paste0("plot/", filename, " PCA plot mod", i, ".pdf"))
+          pdf(paste0(filename, "_PCA_mod", i, ".pdf")) #200703
           dev.off()
         } else print(pic)
       }

@@ -57,8 +57,9 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
         sampleTree <- hclust(dist, method = "average");
         if (sum(is.na(treelabels))) treelabels <- dimnames(data_imp$intensity)[[2]];
         if (is.character(filename) & length(filename) == 1){
-          if (!dir.exists("plot")) dir.create("plot");
-          pdf(paste0("plot/", filename, " sampleTree ",iter,".pdf"))
+          #if (!dir.exists("plot")) dir.create("plot");
+          #pdf(paste0("plot/", filename, " sampleTree ",iter,".pdf"))
+          pdf(paste0( filename, "_sampleTree_",iter,".pdf")) #200703
         }
 
         plot (sampleTree, main = "Sample clustering to detect outliers",
@@ -82,8 +83,9 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
         pch<-rep(20, length(numbersd));
         pch[out_pos] <- 21;
         if (is.character(filename) & length(filename) == 1){
-          if (!dir.exists("plot")) dir.create("plot");
-          pdf(paste0("plot/", filename, " outliersample ",iter,".pdf"))
+          #if (!dir.exists("plot")) dir.create("plot");
+          #pdf(paste0("plot/", filename, " outliersample ",iter,".pdf"))
+          pdf(paste0( filename, "_outliersample_",iter,".pdf")) #200703
         }
         plot(numbersd, pch = pch,bg = "red",col = col,xlab = "");
         if (length(out_pos) > 0) {

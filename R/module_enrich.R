@@ -129,8 +129,9 @@ single_mod_enrichplot <- function(module, Mod_Nam, classifiedID,
     #spline interpolation
     sp1 = spline(x, Z, n=3*length(classifiedID), ...);
     if (is.character(filename) & length(filename) == 1){
-      if (!dir.exists("plot")) dir.create("plot");
-      pdf(paste0("plot/ module", Mod_Nam, " enrichment ", filename, ".pdf"))
+      #if (!dir.exists("plot")) dir.create("plot");
+      #pdf(paste0("plot/ module", Mod_Nam, " enrichment ", filename, ".pdf"))
+      pdf(paste0("module", Mod_Nam, "_enrichment_", filename, ".pdf")) #200703
     }
     plot(x, Z, type = "p", pch=20, ylab="Z score", xlab = "",
          main = paste("module", Mod_Nam, "enrichment analysis"));

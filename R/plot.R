@@ -40,8 +40,9 @@ FCSenrichplot <- function(FCSenrich, count = 1, p = 0.05, filter = "p",
       theme_classic() +
       theme(text = element_text(size = 17));
     if (is.character(filename) & length(filename) == 1) {
-      if (!dir.exists("plot")) dir.create("plot");
-      filename = paste0("plot/module enrichment ", filename, ".", filetype);
+      #if (!dir.exists("plot")) dir.create("plot");
+      #filename = paste0("plot/module enrichment ", filename, ".", filetype);
+      filename = paste0("modenrich_", filename, ".", filetype) #200703
       ggsave(pic, filename = filename, ...);
       unlink(pic)
     } else print(pic)

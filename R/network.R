@@ -4,8 +4,9 @@
 #the previous code will show the wrong result when extract 2 or more Modules
 #190612 fix the error when PFG is not the whole mod.name
 #200327 fix the bug occur in 190612 added function.
+#20200610 add correlaton adjust P
 getmoduleHub <- function(data, module, mod_num, coln = "new.ID",
-                         cor.sig = 0.05, cor.r = 0,
+                         cor.sig = 0.05, cor.r = 0, cor.adj="none",
                          adjustp = TRUE, hub.p = 0.05){
   #mod.name <- module[module$moduleNum == mod_num, coln];
   mod.name <- module[module$moduleNum %in% mod_num, coln]; #190604
@@ -17,7 +18,7 @@ getmoduleHub <- function(data, module, mod_num, coln = "new.ID",
   #library("Hmisc")
   cor_matrix <- Hmisc::rcorr(mod, type = "pearson");
   #
-  cor_matrix_sig <- .sig_cor(cor_matrix, p = cor.sig, r = cor.r, type = 1);
+  cor_matrix_sig <- .sig_cor(cor_matrix, p = cor.sig, r = cor.r, type = 1,padjust=cor.adj);
   cor_order <- .orderCor(abs(cor_matrix_sig$r), cor_matrix_sig$P);
 
   # make igraph objects
@@ -220,10 +221,9 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                            label.scaleFactor = 10,
                            layout = "kamada.kawai")
       if (is.character(filename) & length(filename) == 1) {
-        if (!dir.exists("plot"))
-          dir.create("plot")
-        filename2 = paste0("plot/DEP_Mod_net", filename, "_ori",
-                           ".", filetype)
+        #if (!dir.exists("plot")) dir.create("plot")
+        #filename2 = paste0("plot/DEP_Mod_net", filename, "_ori",".", filetype)
+        filename2 = paste0("DEPModNet_", filename,"_ori", ".", filetype) #200703
         ggsave(pic$pnet, filename = filename2, ...)
         unlink(pic$pnet)
       }
@@ -261,10 +261,9 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                            label.scaleFactor = 10,
                            layout = "kamada.kawai")
       if (is.character(filename) & length(filename) == 1) {
-        if (!dir.exists("plot"))
-          dir.create("plot")
-        filename2 = paste0("plot/DEP_Mod_net", filename, "_ori",
-                           ".", filetype)
+        #if (!dir.exists("plot")) dir.create("plot")
+        #filename2 = paste0("plot/DEP_Mod_net", filename, "_ori", ".", filetype)
+        filename2 = paste0("DEPModNet_", filename,"_ori", ".", filetype) #200703
         ggsave(pic$pnet, filename = filename2, ...)
         unlink(pic$pnet)
       }
@@ -315,10 +314,9 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                              label.scaleFactor = 10,
                              layout = "kamada.kawai")
         if (is.character(filename) & length(filename) == 1) {
-          if (!dir.exists("plot"))
-            dir.create("plot")
-          filename2 = paste0("plot/DEP_Mod_net", filename, "_new",
-                             ".", filetype)
+          #if (!dir.exists("plot")) dir.create("plot")
+          #filename2 = paste0("plot/DEP_Mod_net", filename, "_new", ".", filetype)
+          filename2 = paste0("DEPModNet_", filename,"_new", ".", filetype) #200703
           ggsave(pic$pnet, filename = filename2, ...)
           unlink(pic$pnet)
         }
@@ -391,10 +389,9 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                                  label.scaleFactor = 10,
                                  layout = "kamada.kawai");
             if (is.character(filename) & length(filename) == 1) {
-              if (!dir.exists("plot"))
-                dir.create("plot")
-              filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter,
-                                 ".", filetype)
+              #if (!dir.exists("plot")) dir.create("plot")
+              #filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter, ".", filetype)
+              filename2 = paste0("DEPModNet_", filename,"_",iter, ".", filetype) #200703
               ggsave(pic$pnet, filename = filename2, ...)
               unlink(pic$pnet)
             }
@@ -460,10 +457,9 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                                  label.scaleFactor = 10,
                                  layout = "kamada.kawai");
             if (is.character(filename) & length(filename) == 1) {
-              if (!dir.exists("plot"))
-                dir.create("plot")
-              filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter,
-                                 ".", filetype)
+              #if (!dir.exists("plot")) dir.create("plot")
+              #filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter, ".", filetype)
+              filename2 = paste0("DEPModNet_", filename,"_",iter, ".", filetype) #200703
               ggsave(pic$pnet, filename = filename2, ...)
               unlink(pic$pnet)
             }
@@ -487,10 +483,9 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                              label.scaleFactor = 10,
                              layout = "kamada.kawai")
         if (is.character(filename) & length(filename) == 1) {
-          if (!dir.exists("plot"))
-            dir.create("plot")
-          filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter,
-                             ".", filetype)
+          #if (!dir.exists("plot")) dir.create("plot")
+          #filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter, ".", filetype)
+          filename2 = paste0("DEPModNet_", filename,"_",iter, ".", filetype) #200703
           ggsave(pic$pnet, filename = filename2, ...)
           unlink(pic$pnet)
         }
@@ -513,10 +508,13 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
 
 ##extract correlation
 #P 0.05,0.01,0.001  r  0.1,0.3,0.5,0.8
-.sig_cor <- function(cor_matrix, p = 0.05, r = NA, type = 1){
+#add p adjust
+.sig_cor <- function(cor_matrix, p = 0.05, r = NA, type = 1,padjust="none"){
   #lower.tri
   cor_matrix$P[upper.tri(cor_matrix$P,diag = TRUE)] <- NA;
   cor_matrix$r[upper.tri(cor_matrix$P,diag = TRUE)] <- NA;
+  cor_matrix$P <- matrix(p.adjust(cor_matrix$P,method = padjust),
+                         ncol = nrow(cor_matrix$P),nrow = nrow(cor_matrix$P));#20200610
   #order
   #rank_r<-matrix(rank(1-abs(cor_matrix$r)),nrow=nrow(cor_matrix$r));
   #rank_p<-matrix(rank(abs(cor_matrix$P)),nrow=nrow(cor_matrix$P));
