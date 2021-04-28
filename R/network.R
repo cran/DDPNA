@@ -204,7 +204,7 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                               layout = "kamada.kawai"), silent = TRUE)
     if (class(test) == "try-error")
       stop("plot_subgraph is error. Please check ModNet.")
-    netgene = ModNet$degreeStat$gene;
+    modulegene = ModNet$degreeStat$gene; #200802
     hub = ModNet$hub;
     PMFG = ModNet$PMFG;
     #cat("No IDsets, it will only plot the module network.");

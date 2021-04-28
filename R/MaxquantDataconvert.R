@@ -20,7 +20,7 @@ MaxQdataconvert <- function(pgfilename, IDname = "Majority.protein.IDs",
     inf <- try(P.G.extract(data$protein_IDs, justID = justID,
                            status1 = status1, ENTRY1 = ENTRY1,
                            verbose = verbose-1));
-    if (any(class(inf) %in% "try-error")) { #200627
+    if (!any(class(inf) %in% "try-error")) { #200627 200804
       inf <- data.frame(inf[ ,1:3], stringsAsFactors = FALSE);
       colnames(inf) <- c("db.type", "ori.ID", "ENTRY.NAME");
       NEXTtoIDmatch = TRUE;

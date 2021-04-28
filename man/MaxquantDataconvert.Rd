@@ -82,7 +82,7 @@ Kefu Liu
 }
 \note{
 The function should install 'blast+' software, Version 2.7.1.
-'blast+' download website:ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
+'blast+' download website:https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
 db1.path, db2.path, out.folder are both need the complete path. Out.folder and db1.path should be in the same folder. Path should have no special character.
 }
 
