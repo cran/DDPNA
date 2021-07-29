@@ -24,95 +24,14 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
     data[[intensity]] <- inten;
     rm(inten)
   }
-  data <- .proteomic_data(data[[inf]], data[[intensity]]);
+  data <- list(inf = data[[inf]], intensity = data[[intensity]]);
   data <- .NAnum.proteomic_data(data, miss.value = miss.value, verbose = verbose);
   #table(data$inf$NA_num)
   data_imp <- .deNA2.proteomic_data(data, trunc(maxNAratio * ncol(data$intensity)));
   #remove Outlier Sample
-  if (removeOutlier == 2) {
-    outlierdata <- match.arg(outlierdata,
-                             c("intensity","relative_value","log2_value"));
-    if (outlierdata != "intensity") data_imp <- .proteomic_data(data_imp$inf,
-                                                                data_imp$intensity);
-    distmethod <- match.arg(distmethod,
-                            c("manhattan","euclidean", "canberra","correlation"));
-    outliersample = 1; outlier = NULL; iter = 0;
-    while (outliersample > 0) {
-      iter <- iter + 1;
-      if(distmethod == "correlation")
-        {
-        # intra-assay correlation
-        IAC <- cor(data_imp[[outlierdata]], use = "p");
-        if (A.IAC) IAC <- ((1+IAC)/2)^2;
-        #IAC histogram
-        #hist(IAC,breaks=50,sub=paste("Mean=",format(mean(IAC[upper.tri(IAC)]),digits=3)))
-        # 1-IAC as distance
-        dist <- as.dist(1 - IAC);
-        } else
-        {
-        dist <- dist(t(data_imp[[outlierdata]]), method = distmethod);
-        IAC <- as.matrix(dist);
-        }
-      if (dohclust) {
-        sampleTree <- hclust(dist, method = "average");
-        if (sum(is.na(treelabels))) treelabels <- dimnames(data_imp$intensity)[[2]];
-        if (is.character(filename) & length(filename) == 1){
-          #if (!dir.exists("plot")) dir.create("plot");
-          #pdf(paste0("plot/", filename, " sampleTree ",iter,".pdf"))
-          pdf(paste0( filename, "_sampleTree_",iter,".pdf")) #200703
-        }
-
-        plot (sampleTree, main = "Sample clustering to detect outliers",
-              sub = "", labels = treelabels, ...);
-        if (is.character(filename) & length(filename) == 1) dev.off()
-        #cluster<-hclust(as.dist(1-IAC),method="average")
-        #plot(cluster,cex=0.7,labels=dimnames(data$intensity)[[2]])
-      }
-      # Another way to visualize outliers is to calculate the mean IAC for each array and examine this distribution
-      meanIAC <- apply(IAC, 2, mean);#hist(meanIAC,breaks=10)
-      sdCorr <- sd(meanIAC);#sd
-      numbersd <- abs(meanIAC - mean(meanIAC)) / sdCorr;
-      #if meanIAC is normal distribution,+-2 means 95%
-      out_name <- dimnames(data_imp[[outlierdata]])[[2]][numbersd > sdout];
-      out_pos <- as.numeric(which(numbersd > 2));
-      #outliers
-      if (plot) {
-        if (sum(is.na(text.labels))) text.labels <- out_name;
-        col <- rep("black",length(numbersd));
-        col[out_pos] <- "red";
-        pch<-rep(20, length(numbersd));
-        pch[out_pos] <- 21;
-        if (is.character(filename) & length(filename) == 1){
-          #if (!dir.exists("plot")) dir.create("plot");
-          #pdf(paste0("plot/", filename, " outliersample ",iter,".pdf"))
-          pdf(paste0( filename, "_outliersample_",iter,".pdf")) #200703
-        }
-        plot(numbersd, pch = pch,bg = "red",col = col,xlab = "");
-        if (length(out_pos) > 0) {
-          text(out_pos, numbersd[out_pos], labels = text.labels,
-               pos = text.pos,cex = text.cex, col = text.col);
-          abline(h = sdout, col = abline.col, lwd = abline.lwd);
-        }
-        if (is.character(filename) & length(filename) == 1) dev.off()
-        text.labels <- NA;
-      }
-      outliersample <- length(out_pos);
-      outlier <- c(outlier, out_name);
-      if (outliersample > 0) {
-        data_imp$intensity <- data_imp$intensity[ ,-out_pos];
-        data_imp$inf <- data_imp$inf[ ,-which(colnames(data_imp$inf) == "NA_num")];
-        data_imp <- .NAnum.proteomic_data(data_imp, miss.value=miss.value);
-        data_imp <- .deNA2.proteomic_data(data_imp,
-                                          trunc(0.5*ncol(data_imp$intensity)));
-        if (outlierdata != "intensity")
-          data_imp <- .proteomic_data(data_imp$inf, data_imp$intensity);
-      }
-      if (!is.na(iteration) & iter >= iteration) outliersample <- 0;
-    }
-  }
   if (removeOutlier) {
     data_deoutlier <- try(.OutlierDetect(data_imp, iteration = iteration,
-                                         outlierdata = outlierdata,
+                                         intensity = "intensity", #outlierdata
                                          distmethod = distmethod, A.IAC = A.IAC,
                                          maxNAratio = maxNAratio,
                                          miss.value = miss.value, sdout = sdout,
@@ -121,7 +40,7 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
                                          text.cex = text.cex, text.col = text.col,
                                          text.pos = text.pos, text.labels = text.labels,
                                          abline.col = abline.col, abline.lwd = abline.lwd,
-                                         ...));
+                                         ...)); #outlierdata change to intensity
     if (class(data_deoutlier) != "try-error")
       data_imp <- data_deoutlier$data else
         warning("removeOutlier is failed.");
@@ -351,7 +270,10 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
 
 #190615 fix a bug when doclust, it will error use the previous function
 #190716 fix outlier detect problem when miss.value is not NA, the outlier detect will different.
-.OutlierDetect <- function(data, iteration = NA, outlierdata = "intensity",
+#210728 the param:outilerdata change to param:intensity
+#210728 add a new choose in distmethod: bicor
+#210728 fix the plot and doclust plot
+.OutlierDetect <- function(data, iteration = NA, intensity = "intensity",
                            distmethod = "manhattan", A.IAC = FALSE,
                            maxNAratio = 0.5,
                            miss.value = NA, sdout = 2,
@@ -361,34 +283,57 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
                            text.labels = NA, abline.col = "red", abline.lwd = 2,
                            ...){
   distmethod <- match.arg(distmethod,
-                          c("manhattan","euclidean", "canberra","correlation"));
-  outlierdata <- match.arg(outlierdata,
-                           c("intensity","relative_value","log2_value"));
-  if (outlierdata != "intensity") data <- .proteomic_data(data$inf, data$intensity);
+                          c("manhattan","euclidean", "canberra","correlation","bicor"));
+  #210728 del; outlierdata <- match.arg(outlierdata, c("intensity","relative_value","log2_value"));
+  #210728 change intensity dataframe name to "intensity"
+  if (intensity != "intensity") #210728 del; data <- .proteomic_data(data$inf, data$intensity);
+    names(data)[names(data) == intensity] <- "intensity";
   outliersample = 1; outlier = NULL; iter = 0;
-  if (!is.na(miss.value)) data[[outlierdata]][data[[outlierdata]] == miss.value] <- NA; #190716
+  if (!is.na(miss.value)) #210728 del; data[[outlierdata]][data[[outlierdata]] == miss.value] <- NA; #190716
+    data[["intensity"]][data[["intensity"]] == miss.value] = NA;#210728
   while (outliersample > 0){
     iter <- iter + 1;
-    if (distmethod == "correlation")
+    if (distmethod %in% c("correlation","bicor"))
     {
       # intra-assay correlation
-      IAC <- cor(data[[outlierdata]], use = "p");
+      #210728 del; IAC <- cor(data[[outlierdata]], use = "p");
+      if(distmethod == "correlation") IAC <- cor(data[["intensity"]], use = "pairwise.complete.obs"); #210728
+      #210728 add bicor function
+      if(distmethod == "bicor") {
+        if (!requireNamespace("WGCNA", quietly = TRUE)) {
+          stop ("WGCNA in Bioconductor needed when using bicor method. Please install it.",
+                call. = FALSE)}
+        IAC <- WGCNA::bicor(data[["intensity"]], use='pairwise.complete.obs')}
       if (A.IAC) IAC <- ((1+IAC)/2)^2;
       #IAC histogram
       #hist(IAC,breaks=50,sub=paste("Mean=",format(mean(IAC[upper.tri(IAC)]),digits=3)))
       # 1-IAC as distance
       dist <- as.dist(1 - IAC);
-    } else
-    {
-      dist <- dist(t(data[[outlierdata]]), method = distmethod);
+    } else {
+      #dist <- dist(t(data[[outlierdata]]), method = distmethod);
+      dist <- dist(t(data[["intensity"]]), method = distmethod);
       IAC <- as.matrix(dist);
     }
+    # Another way to visualize outliers is to calculate the mean IAC for each array and examine this distribution
+    meanIAC <- apply(IAC, 2, mean);#hist(meanIAC,breaks=10)
+    sdCorr <- sd(meanIAC);#sd
+    numbersd <- abs(meanIAC - mean(meanIAC)) / sdCorr;
+    #if meanIAC is normal distribution,+-2 means 95%
+    all_name <- dimnames(data[["intensity"]])[[2]];
+    #210728 del; out_name <- dimnames(data[[outlierdata]])[[2]][numbersd > sdout];
+    out_name <- all_name[numbersd > sdout];#210728
+    out_pos <- as.numeric(which(numbersd > sdout));
     if(dohclust) {
       sampleTree <- hclust(dist, method = "average");
-      if(sum(is.na(treelabels))) treelabels <- dimnames(data$intensity)[[2]];
+      #210728
+      if (length(treelabels)!= dim(data$intensity)[[2]] & !all(is.na(treelabels))) {
+        treelabels = NA;
+        warning("the number of treelabels is differ with sample number and use sample name instead of.")
+      }
+      if (all(is.na(treelabels))) treelabels <- dimnames(data$intensity)[[2]];
       if (is.character(filename) & length(filename) == 1){
-        dir.create("plot");
-        pdf(paste0(filename, " sampleTree ",iter,".pdf"))
+        if(!dir.exists("plot")) dir.create("plot"); #210615fix exist plot dir
+        pdf(paste0("plot/",filename, " sampleTree ",iter,".pdf")) #210728 save file in plot dir
       }
       plot(sampleTree, main = "Sample clustering to detect outliers",
            sub="", labels=treelabels,...);
@@ -396,47 +341,52 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
       #cluster <- hclust(as.dist(1-IAC),method="average")
       #plot(cluster,cex=0.7,labels=dimnames(data$intensity)[[2]])
     }
-    # Another way to visualize outliers is to calculate the mean IAC for each array and examine this distribution
-    meanIAC <- apply(IAC, 2, mean);#hist(meanIAC,breaks=10)
-    sdCorr <- sd(meanIAC);#sd
-    numbersd <- abs(meanIAC - mean(meanIAC)) / sdCorr;
-    #if meanIAC is normal distribution,+-2 means 95%
-    out_name <- dimnames(data[[outlierdata]])[[2]][numbersd > sdout];
-    out_pos <- as.numeric(which(numbersd > sdout));
     #outliers
     if (plot) {
-      if (sum(is.na(text.labels))) text.labels <- out_name;
+      #210728
+      if (length(text.labels)!= dim(data$intensity)[[2]] & !all(is.na(text.labels))) {
+        text.labels = NA;
+        warning("the number of text.labels is differ with sample number and use sample name instead of.")
+      }
+      #210728 use textlabels instead of text.labels
+      if (all(is.na(text.labels))) textlabels <- out_name;
+      #210728
+      if (length(text.labels) == dim(data$intensity)[[2]]) {
+        textlabels <- text.labels[out_pos];
+        text.labels <- text.labels[-out_pos];
+      }
       col <- rep("black", length(numbersd));
       col[out_pos] <- "red";
       pch <- rep(20, length(numbersd));
       pch[out_pos] <- 21;
       if (is.character(filename) & length(filename) == 1){
-        if(!dohclust) dir.create("plot");
-        pdf(paste0(filename, " outliersample ",iter,".pdf"))
+        if(!dir.exists("plot")) dir.create("plot"); #210615fix exist plot dir
+        pdf(paste0("plot/",filename, " outliersample ",iter,".pdf")) #210728 save file in plot dir
       }
       plot(numbersd, pch = pch, bg = "red", col = col, xlab = "");
       if (length(out_pos) > 0){
-        text(out_pos, numbersd[out_pos], labels = text.labels,
+        text(out_pos, numbersd[out_pos], labels = textlabels,
              pos = text.pos, cex = text.cex, col = text.col);
         abline(h = sdout, col = abline.col, lwd = abline.lwd);
       }
       if (is.character(filename) & length(filename) == 1) dev.off()
-      text.labels <- NA;
+      #text.labels <- NA;
     }
     outliersample <- length(out_pos);
     outlier <- c(outlier, out_name);
     if (outliersample > 0) {
-      data$intensity <- data$intensity[ ,-out_pos];
+      data[["intensity"]] <- data[["intensity"]][ ,-out_pos];
       treelabels <- treelabels[-out_pos];#190615
       data$inf <- data$inf[ ,-which(colnames(data$inf) == "NA_num")];
       #data <- .NAnum.proteomic_data(data, miss.value = miss.value);
       data <- .NAnum.proteomic_data(data, miss.value = NA);#190716
       data <- .deNA2.proteomic_data(data, trunc(maxNAratio*ncol(data$intensity)));
-      if (outlierdata != "intensity")
-        data <- .proteomic_data(data$inf, data$intensity);
+      #if (outlierdata != "intensity")
+      #  data <- .proteomic_data(data$inf, data$intensity);#210728 del
     }
     if (!is.na(iteration) & iter >= iteration) outliersample <- 0; #190716
   }
-  if (!is.na(miss.value)) data[[outlierdata]][is.na(data[[outlierdata]])] <- miss.value; #190716
+  #if (!is.na(miss.value)) data[[outlierdata]][is.na(data[[outlierdata]])] <- miss.value; #190716
+  if (!is.na(miss.value)) data[["intensity"]][is.na(data[["intensity"]])] <- miss.value; #210728
   list(outlier = outlier, data = data)
 }

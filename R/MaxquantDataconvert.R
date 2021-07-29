@@ -60,15 +60,6 @@ MaxQdataconvert <- function(pgfilename, IDname = "Majority.protein.IDs",
     }
   }
 
-  if(1!=1)
-  {if (is.null(db1.path) | is.null(db2.path) | is.null(out.folder) | is.null(blast.path)) {
-    warning("Break short. ID match is not execute.");
-    NEXTtoIDmatch = FALSE;
-  } else if (file.exists(db1.path) & file.exists(db2.path) &  dir.exists(blast.path)) {
-    warning("Break short. ID match is not execute.");
-    NEXTtoIDmatch = FALSE;
-  }}
-
   if (NEXTtoIDmatch) {
     data_match <- try(ID_match(data = inf,
                                db1.path = db1.path,
@@ -326,7 +317,8 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
     {
       gn <- NULL;
       ##maxium delete character:4
-      max <- nchar(data_GN[j]);
+      data_GN[j] <- gsub("\\(|\\)|\\.|\\*|\\[|\\]|\\{|\\}|/","",data_GN[j]) #210528 remove regexp meta char
+      max <- nchar(data_GN[j],type = "width"); #210528 fixed        #max <- nchar(data_GN[j]);
       for (i in 1:5)
       {
         ##match first, if no then delete character

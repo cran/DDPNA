@@ -1,10 +1,10 @@
-905da5b094d31a2229b4a32526f86992 *DESCRIPTION
+1bff2771776d7bee5c64ddebaa4aaac9 *DESCRIPTION
 23d083fd2437840374b1120fe0bb39bd *NAMESPACE
 8320fa3452649b16410770e874d70d2c *R/DEPextract.R
-7b3b6b4761f30e0edbc7f2a8aeee7523 *R/MaxquantDataconvert.R
+162532a9fe62980f824ca3d372e68603 *R/MaxquantDataconvert.R
 46b39065a419180b16081e0e245db082 *R/Moduleconstruction.R
 27bd94cdc126262ab6157b5e48259764 *R/data.R
-0b905601df5bcd7ef2e95a3f31320ad6 *R/missing_value_impute.R
+d6879f5053c4bbf5a88a573f8528fb84 *R/missing_value_impute.R
 87b3a970ac32bcdca84fdd14356aef63 *R/module_enrich.R
 94245e0089e35bc5f611ba5eb63c22a4 *R/network.R
 48072b63da0ca2fa80f46e78902bf22b *R/plot.R
@@ -12,7 +12,6 @@ ccf26286e98e104d8ee11348d059e2c6 *README.md
 784c87fa253cdf8f4371c0f28478293a *data/Dforimpute.rda
 b52bb9bb1e8ee049514cfee43765dcee *data/ProteomicData.rda
 faad2e7d7eb5f06b856185b36744c4a3 *data/Sample_ID_data.rda
-a575c1c33179d465d73af51276e1db46 *data/datalist
 a18e58361cb1496e4dc673bc5242065e *data/imputedData.rda
 f5cc1afe6abba72c329d8e901c1cc14f *data/net.rda
 61cc0f22f38e87c435c577703c901158 *man/DDPNA-package.Rd
@@ -38,7 +37,7 @@ f33782416a22d8d3418fb6fc834c056c *man/dataStatInf.Rd
 61683358048d8af2d25a538daede5b85 *man/getmoduleHub.Rd
 a4c7d0192580af561f31cc5f92a1b34d *man/groupmean.Rd
 5de4c2073f945f161ed264a360f187f7 *man/imputedData.Rd
-a42d66959ce9f845348f891c3c69705f *man/missing_value_impute.Rd
+cddb79cdd7ebee3f05142176e813946a *man/missing_value_impute.Rd
 82a1884e398a2e70470f9bdea6204cc1 *man/modpcomp.Rd
 4a007e1613f5fdf8833f077d7e4ad960 *man/moduleID.Rd
 9247cdb1f95f5865d9c8a0626d04b3ef *man/multi.t.test.Rd
