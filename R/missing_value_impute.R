@@ -10,7 +10,8 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
                         text.labels = NA, abline.col = "red", abline.lwd = 2,
                         impute = TRUE, verbose = 1, ...){
   if (is.null(data[[inf]]) | is.null(data[[intensity]])) stop("data, inf or intensity is wrong.")
-  if (class(data[[intensity]]) != "data.frame") stop("data[[intensity]] must be a data.frame.")
+  if (!inherits(data[[intensity]],"data.frame")) #220517 class(data[[intensity]]) != "data.frame"
+    stop("data[[intensity]] must be a data.frame.")
   if (is.character(as.matrix(data[[intensity]]))) stop("data[[intensity]] contains character.")
   #extract sample name
   if (splNExt) {
@@ -41,15 +42,14 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
                                          text.pos = text.pos, text.labels = text.labels,
                                          abline.col = abline.col, abline.lwd = abline.lwd,
                                          ...)); #outlierdata change to intensity
-    if (class(data_deoutlier) != "try-error")
+    if (!inherits(data_deoutlier,"try-error"))  #220517 class(data_deoutlier) != "try-error"
       data_imp <- data_deoutlier$data else
         warning("removeOutlier is failed.");
   }
   if (impute)
   {#knn impute
-  dimp <- try(.knn_impute3.proteomic_data(data_imp, miss.value = miss.value,
-                                          maxp = nrow(data_imp$intensity), ...));
-  if (class(dimp) != "try-error")
+  dimp <- try(.knn_impute3.proteomic_data(data_imp, miss.value = miss.value,...));
+  if (!inherits(dimp,"try-error")) #220517 class(dimp) != "try-error"
     data_imp <- dimp else
       warning("impute is failed.")
   }
@@ -166,6 +166,7 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
 }
 
 #missing value knn impute
+#220515 add iteration when missing value large than 50%
 .knn_impute.proteomic_data <- function(data){
   geo_mean <- function(data) {
     data[data < 0] <- NA;
@@ -230,8 +231,10 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
   class(proteomic_data) <- "proteomic_data";
   proteomic_data
 }
-.knn_impute3.proteomic_data <- function(data,miss.value = NA,...){
-  geo_mean <- function(data) {
+.knn_impute3.proteomic_data <- function(data,miss.value = NA,maxp = nrow(data$intensity),
+                                        seed = 12345,minitertime = 10,...){
+  set.seed(seed) #220515
+  geo_mean <- function(data){
     data[data < 0] <- NA;
     log_data <- log(data);
     gm <- NA;
@@ -245,11 +248,69 @@ Data_impute <- function(data, inf = "inf", intensity = "LFQ", miss.value = NA,
     stop ("impute in Bioconductor needed for this function to work. Please install it.",
          call. = FALSE)
   }
-  if (length(miss.value) != 1 ) stop("wrong miss value");
-  if (!miss.value %in% c(0, 1, NA)) stop("wrong miss value");
+  if (length(miss.value) != 1 ) stop("miss value must be one of 0, 1, NA.");
+  if (!miss.value %in% c(0, 1, NA)) stop("miss value must be one of 0, 1, NA.");
   data$intensity[data$intensity == miss.value] <- NA;
-  intensity <- impute::impute.knn(as.matrix(data$intensity),...);
-  intensity <- as.data.frame(intensity$data);
+  data <- .NAnum.proteomic_data(data); #220515
+  #data <- .deNA2.proteomic_data(data, trunc(0.8 * ncol(data$intensity)));
+  data2 <- data;
+  impute1pos <- data$inf$NA_num <= trunc(ncol(data$intensity)*0.5)
+  impute1pos <- which(impute1pos);
+  n = ncol(data$intensity);
+  Valnum = n - data$inf$NA_num[-impute1pos];
+  if(min(Valnum) < 6)
+    stop("The maxNA value is too big. It remains less than 6 values in some proteins. Please change a fit maxNA value and try again.")
+  int5 <- impute::impute.knn(as.matrix(data$intensity[impute1pos,]),maxp = maxp,...);
+  int5 <- as.data.frame(int5$data);
+  int8 <- data$intensity;
+  int8[impute1pos,] <- int5;
+  if(nrow(int5) < nrow(data$intensity)) {
+    int_2 <- int8[-impute1pos,]; #the picked gene need iterated impute
+    iteraID <- data$inf$ori.ID[-impute1pos];
+    matrix_pos <- is.na(int_2); #the position of missing value
+    numtest <- matrix_pos - 1; numtest[numtest<0] <- 0; #iterate # for every gene-sample;intital 0
+    intsum <- numtest; intsum[!matrix_pos]<- NA #iterate result sum
+    iterate = NULL; k = 0;
+    for (i in order(Valnum,decreasing = TRUE)){
+      fixcol = which(!is.na(int_2[i,])); j = 1;
+      if(all(numtest[i,] >= 50)) {
+        iterate = c(iterate, j); next
+      } else {
+        #for(j in 1:100){
+        while(min(numtest[i,]) < minitertime) {
+          set.seed(j); j=j+1;
+          samplcol <- c(fixcol,sample((1:n)[-fixcol],Valnum[i]));
+          x <- int8[,samplcol];
+          data2$intensity <- x;
+          data_sampl <- .NAnum.proteomic_data(data2);
+          data_sampl <- .deNA2.proteomic_data(data_sampl, trunc(0.5 * ncol(data_sampl$intensity)));
+          data_sampl$intensity <- as.data.frame(impute::impute.knn(as.matrix(data_sampl$intensity),maxp=maxp,...)$data);
+          #table(data_sampl$inf$NA_num)
+          intx <- data_sampl$intensity;
+          intx <- intx[!rownames(intx) %in% rownames(int5),]; #find the iterate imputed gene matrix
+          posx = rownames(int_2) %in% rownames(intx);
+          #the next 4 lines: put intx into int_2 position(value and position)
+          possampl <- is.na(int_2); possampl <- possampl - 1;
+          possampl[possampl<0]<- 0;
+          intsampl <- data.frame(possampl+0);
+          intsampl[posx,samplcol] <- intx;
+          possampl[posx,samplcol] <- TRUE;
+          possampl <- possampl&matrix_pos; #the postion need to write
+          numtest[posx,samplcol] <- numtest[posx,samplcol] + 1; #the wirte positon num+1
+          intsum[possampl] <- intsum[possampl]+intsampl[possampl]; #add the value into position
+        }
+        iterate = c(iterate, j-1);
+      }
+      cat(paste0(k,": ",iteraID[i], " was imputed " , j-1 ," times\n"))
+      k=k+1;
+    }
+    intimp <- intsum; intimp <- intimp/numtest;
+    int_2[matrix_pos] <- intimp[matrix_pos];
+    int8[-impute1pos,] <- int_2;
+    intensity <- int8
+  } else intensity <- int5;
+  #intensity <- impute::impute.knn(as.matrix(data$intensity),...);
+  #intensity <- as.data.frame(intensity$data);
   geo_mean <- geo_mean(intensity);
   relative_value <- intensity/geo_mean;
   #relative_value <- impute::impute.knn(as.matrix(data$relative_value));

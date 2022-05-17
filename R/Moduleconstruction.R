@@ -30,17 +30,16 @@ SoftThresholdScaleGraph <- function(data,
 
 
 #190607 add the question whether load WGCNA package
-wgcnatest <- function(data, power = NULL, TOMType = "unsigned",
-                      detectCutHeight = NULL, maxBlockSize = 5000,
+#220513 add corType and networkType and ... parameter
+wgcnatest <- function(data, power = NULL, maxBlockSize = 5000,
+                      corType = "pearson", networkType = "unsigned",
+                      TOMType = "unsigned",
+                      detectCutHeight = NULL,
                       deepSplit = TRUE, minModSize = TRUE,
+                      minKMEtoStay = TRUE,minCoreKME = FALSE,
+                      reassignThreshold = FALSE,mergeCutHeight = FALSE,
                       pamRespectsDendro = FALSE,
-                      minKMEtoStay = TRUE,
-                      minCoreKME = FALSE,
-                      reassignThreshold = FALSE,
-                      mergeCutHeight = FALSE,
-                      maxModNum = 30,
-                      minModNum = 8,
-                      MaxMod0ratio = 0.3) {
+                      maxModNum = 30,minModNum = 8,MaxMod0ratio = 0.3,...) {
 
   if( ncol(data) < 50) stop("The number of proteins is too less to fit the function.")
   if( maxBlockSize > 45000) stop("maxBlockSize is too larger to fit the function.")
@@ -109,13 +108,16 @@ wgcnatest <- function(data, power = NULL, TOMType = "unsigned",
     rm(r,p,num)
   }
 
-  net <- try(WGCNA::blockwiseModules(data, power = power, maxBlockSize = maxBlockSize,
-                                     TOMType = TOMType, deepSplit = 2,minModuleSize = 20,
+  net <- try(WGCNA::blockwiseModules(data, maxBlockSize = maxBlockSize,
+                                     corType = corType, #220513
+                                     power = power, networkType = networkType,#220513
+                                     TOMType = TOMType, saveTOMs = TRUE,
+                                     deepSplit = 2,minModuleSize = 20,
                                      reassignThreshold = 0.05, mergeCutHeight = 0.15,
                                      numericLabels = TRUE, pamRespectsDendro = FALSE,
-                                     saveTOMs = TRUE, saveTOMFileBase = "blockwisetom",
-                                     verbose = 0), silent = TRUE)
-  if (class(net) == "try-error") #190607
+                                     saveTOMFileBase = "blockwisetom",
+                                     verbose = 0,...), silent = TRUE)
+  if (inherits(net,"try-error")) #220516 #190607 class(net) == "try-error"
     stop("Run require(\"WGCNA\") first, if error again, please check the data.")
 
   module <- NULL; unmergedmodule <- NULL; ModNum <- NULL;
@@ -128,16 +130,17 @@ wgcnatest <- function(data, power = NULL, TOMType = "unsigned",
         for(i4 in reassignThreshold){
           for (i5 in mergeCutHeight) {
             for (i6 in minCoreKME) {
-              net <- WGCNA::blockwiseModules(data, loadTOM = TRUE, power = power,
-                                             maxBlockSize = maxBlockSize, TOMType = TOMType,
-                                             deepSplit = i1, minModuleSize = i2,
+              net <- WGCNA::blockwiseModules(data, maxBlockSize = maxBlockSize,
+                                             corType = corType, #220513
+                                             power = power, networkType = networkType,#220513
+                                             TOMType = TOMType, loadTOM = TRUE,saveTOMs = FALSE,
+                                             deepSplit = i1,minModuleSize = i2,
                                              detectCutHeight = detectCutHeight,
                                              minKMEtoStay = i3, minCoreKME = i6,
                                              reassignThreshold = i4, mergeCutHeight = i5,
-                                             numericLabels = TRUE,
-                                             pamRespectsDendro = pamRespectsDendro,
-                                             saveTOMs = FALSE,
-                                             verbose = 0);
+                                             numericLabels = TRUE, pamRespectsDendro = pamRespectsDendro,
+                                             saveTOMFileBase = "blockwisetom",
+                                             verbose = 0,...);
               if(table(net$colors)[1]/ncol(data) < MaxMod0ratio &
                  length(table(net$colors)) <= length(Modnum) &
                  length(table(net$colors)) >= minModNum) {
@@ -203,21 +206,22 @@ ME_inf <- function(MEs, data, intensity.type = "LFQ", rowname = NULL){
 
 Module_inf <- function(net, inf, inftype = "Convert", IDname = NULL, ...){
   inftype <- match.arg(inftype, c("Convert","MaxQ","none"));
-  if (inftype == "Convert") inf <- data.frame(ori.ID = inf$ori.ID,
-                                              new.ID = inf$new.ID,
-                                              stringsAsFactors = FALSE)
-  else if (any(colnames(inf) == IDname)) inf <- inf[ , IDname]
-  else stop("IDname is uncorrect.");
+  if (inftype == "Convert") {
+    inf <- data.frame(ori.ID = inf$ori.ID,
+                      new.ID = inf$new.ID,
+                      stringsAsFactors = FALSE)
+  } else if (any(colnames(inf) == IDname))
+    inf <- inf[ , IDname] else
+      stop("IDname is uncorrect.");
   if (inftype == "MaxQ" & length(IDname) == 1) {
     inf <- P.G.extract(inf,...);
     names(inf) <- c("db.type","ID","ENTRY.NAME");
   }
-  if (class(inf) == "data.frame") inf <- data.frame(inf,
-                                                    moduleNum = net$colors,
-                                                    stringsAsFactors = FALSE)
-  else inf <- data.frame(ProteinID = inf,
-                         moduleNum = net$colors,
-                         stringsAsFactors = FALSE)
+  if (inherits(inf, "data.frame")) #220516 class(inf) == "data.frame"
+    inf <- data.frame(inf,moduleNum = net$colors, stringsAsFactors = FALSE) else
+      inf <- data.frame(ProteinID = inf,
+                        moduleNum = net$colors,
+                        stringsAsFactors = FALSE)
 }
 
 

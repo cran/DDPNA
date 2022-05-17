@@ -14,13 +14,12 @@ The function \code{Data_impute} need \pkg{impute} package from Bioconductor, the
 \tabular{ll}{
 Package: \tab DDPNA\cr
 Type: \tab Package\cr
-Version: \tab 0.2.5\cr
+Version: \tab 0.3.1\cr
 Creat Data: \tab 2019-03-18\cr
-Date: \tab 2020-06-26\cr
+Date: \tab 2022-05-16\cr
 License: \tab GPL (>= 2)\cr
 }
-~~ An overview of how to use the package, including the most important ~~
-~~ functions ~~
+~~ An overview of how to use the package, including the most important functions ~~
 }
 \author{
 Kefu Liu

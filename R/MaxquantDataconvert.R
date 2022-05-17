@@ -20,7 +20,7 @@ MaxQdataconvert <- function(pgfilename, IDname = "Majority.protein.IDs",
     inf <- try(P.G.extract(data$protein_IDs, justID = justID,
                            status1 = status1, ENTRY1 = ENTRY1,
                            verbose = verbose-1));
-    if (!any(class(inf) %in% "try-error")) { #200627 200804
+    if (!inherits(inf,"try-error")) { #220516 #200627 200804 !any(class(inf) %in% "try-error")
       inf <- data.frame(inf[ ,1:3], stringsAsFactors = FALSE);
       colnames(inf) <- c("db.type", "ori.ID", "ENTRY.NAME");
       NEXTtoIDmatch = TRUE;
@@ -36,7 +36,7 @@ MaxQdataconvert <- function(pgfilename, IDname = "Majority.protein.IDs",
     if (!is.null(db2.path)) {
       if(file.exists(db2.path)){
         my_sequences <- try(.uniprot_database(input_file = db2.path))
-        if (class(data_match) != "try-error") {
+        if (!inherits(my_sequences,"try-error")) { #class(my_sequences) != "try-error"
           pos <- match(inf, my_sequences$pro_info$Uniprot.ID);
           inf <- my_sequences$pro_info[pos, 1:3];
           con <- which(is.na(inf[ ,2]));
@@ -67,7 +67,7 @@ MaxQdataconvert <- function(pgfilename, IDname = "Majority.protein.IDs",
                                out.folder=out.folder,
                                blast.path=blast.path,
                                verbose = verbose));
-    if (class(data_match) != "try-error") {
+    if (!inherits(data_match,"try-error")) { #220516 class(data_match) != "try-error"
       inf <- data.frame(data_match, db.type = inf$db.type,
                         protein_IDs = data$protein_IDs,
                         stringsAsFactors = FALSE);
@@ -81,7 +81,7 @@ MaxQdataconvert <- function(pgfilename, IDname = "Majority.protein.IDs",
     data <- list(inf = inf, intensity = data$intensity) else
       data <- list(inf = inf, intensity = data$intensity,
                    iBAQ = data$iBAQ, LFQ = data$LFQ);
-  if(NEXTtoIDmatch & class(data_match) != "try-error") {
+  if(NEXTtoIDmatch & ! inherits(data_match,"try-error")) { #220516 class(data_match) != "try-error"
     if (is.character(savecsvpath) & is.character(csvfilename)){
       my_fasta_match <- data.frame(inf, data$LFQ);
       if (!dir.exists(savecsvpath)) dir.create(savecsvpath);
@@ -164,21 +164,29 @@ Some of the numbers are larger than proteinGroups column number or less than 1."
 #extract protein groups information
 #20190105version
 #20190517 add verbose
+#20220505 add parameter sp1 and onlysp extract sp ID or not
 P.G.extract <- function(inf, ncol = 4,
-                        justID = FALSE, status1 = FALSE,
-                        ENTRY1 = FALSE, verbose = 0) {
+                        justID = FALSE, status1 = TRUE,
+                        ENTRY1 = TRUE, ID1 = TRUE,
+                        sp1 = TRUE, onlysp = FALSE,
+                        verbose = 0) {
   n.gene <- length(inf)
   if (n.gene == 0) stop("wrong inf.")
   inf_matrix <- matrix(rep("", ncol*n.gene), nrow = n.gene, ncol = ncol)
   for (i in 1:n.gene){
     gene <- unlist(strsplit(inf[i], split = ";"))
     status <- NULL; ENTRY <- NULL;
-    seprow1 <- unlist(strsplit(gene[1], split = "\\|"));
+    possp <- grep("sp",gene); #220505
+    if(onlysp & length(possp) != 0) gene <- gene[possp];#220505 only keep sp ID
+    if(sp1) pos <- grep("sp",gene)[1] else pos = 1;#220505
+    if(is.na(pos)) pos = 1; #220505 when no sp ID, choose the first one.
+    seprow1 <- unlist(strsplit(gene[pos], split = "\\|"));
     if (status1) status <- seprow1[1];
     #status<-gsub("(tr|sp)\\|.*","\\1",gene[1])
     if (ENTRY1) ENTRY <- seprow1[3];
     #ENTRY<-gsub("tr|sp\\|.*\\|(.*)","\\1",gene[1])
     if (justID) gene <- gsub(".*(tr|sp)\\|(.*)\\|.*", "\\2", gene);
+    if(ID1) gene <- c(seprow1[2],gene[-pos]) else  gene <- c(gene[pos],gene[-pos]);#220505
     gene <- c(status, gene[1], ENTRY, gene[-1]);
     if (ncol >= length(gene))
       inf_matrix[i, 1:length(gene)] <- gene else {
@@ -203,11 +211,8 @@ P.G.extract <- function(inf, ncol = 4,
 #190601 reset the default working directory
 #190605 add alternative solution without use blast+
 #200602 fix a bug in step 2
+#220505 add GN info
 
-#db1.path="c:/workingdirectory/human-uniprot-20180108.fasta"
-#db2.path="c:/workingdirectory/mouse-uniprot-20180108.fasta"
-#out.folder="c:/workingdirectory"
-#blast.path="e:/blast/ncbi-blast-2.7.1+/bin/"
 ID_match <- function(data, db1.path = NULL, db2.path = NULL,
                      out.folder = NULL, blast.path = NULL,
                      evalue = 0.1, verbose = 1)
@@ -256,15 +261,15 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
     }#200626
   }#190605
   my_sequences <- .uniprot_database(input_file = db1.path);
-  if(class(my_sequences) == "try-error") #190605
+  if(inherits(my_sequences,"try-error"))#220516 #190605 class(my_sequences) == "try-error"
     stop("db1.path file is not the correct format.") else{ #190605
       database1 <- my_sequences$pro_info;
       database1_seq <- my_sequences$pro_seq;
       if (verbose > 0) message("db1 extraction is completed")
     }
   my_sequences <- .uniprot_database(input_file = db2.path);
-  if(class(my_sequences) == "try-error") #190605
-    stop("db1.path file is not the correct format.") else{ #190605
+  if(inherits(my_sequences,"try-error")) #220516 #190605
+    stop("db1.path file is not the correct format.") else { #190605
       database2 <- my_sequences$pro_info;
       database2_seq <- my_sequences$pro_seq;
       if (verbose > 0) message("db2 extraction is completed")
@@ -286,8 +291,8 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
   database1_despecies <- protein_name_despecies(database1);
   #order is ENTRY.NAME,ori.ID,new.ID
   data_IDmatch <- merge(data_despecies[ , c('ori.ID', 'ENTRY.NAME')],
-                        database1_despecies[ , c('Uniprot.ID', 'ENTRY.NAME')],
-                      by='ENTRY.NAME',all.x=TRUE,sort = FALSE);
+                        database1_despecies[ , c('Uniprot.ID', 'ENTRY.NAME',"GN")],
+                      by='ENTRY.NAME',all.x=TRUE,sort = FALSE);#20220505 add GN info
   names(data_IDmatch)[names(data_IDmatch) == 'Uniprot.ID'] <- 'new.ID';
   #match.type is 1
   match.type <- "1";
@@ -298,12 +303,13 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
                       by = 'ori.ID', sort = FALSE);
   #data_IDmatch$new.ID<-as.character(data_IDmatch$new.ID);#factor to character
   datano1 <- data_IDmatch[is.na(data_IDmatch$new.ID), ];
-  if (verbose > 0) message("ID match is completed, match.type is 1")
+  if (verbose > 0) message(paste0("ENTRY.NAME match is completed, ", length(na.omit(data_IDmatch$new.ID))," IDs are matched. Match.type is 1."))#220505
+
   #2.gn match, no matched IDs in datano2, match.type is 2
   if (nrow(datano1) != 0){
     #add GN information
-    data_withgn <- merge(datano1, database2[ ,c('Uniprot.ID', 'GN')],
-                       by.x = 'ori.ID',by.y = 'Uniprot.ID',sort = FALSE);
+    data_withgn <- merge(datano1[,-4], database2[ ,c('Uniprot.ID', 'GN')],
+                       by.x = 'ori.ID',by.y = 'Uniprot.ID',sort = FALSE);#220505 add GN
     nogn <- which(data_withgn$GN == "") #181210
     if(length(nogn) != 0 ) data_withgn <- data_withgn[-nogn, ] #181210 #200602
     # extract GN information
@@ -360,7 +366,7 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
                                                        gapOpening = 9.5,
                                                        gapExtension = 0.5,
                                                        scoreOnly = TRUE), silent = TRUE);
-          if (class(pwalign) == "try-error") {
+          if (inherits(pwalign,"try-error")) {#220516 class(pwalign) == "try-error"
             aa <- unlist(strsplit(unname( as.character(similar_seq[k]) ),"")); #200626
             aa <- aa[aa %in% c("A","C","D","E","F","G","H","I",
                                "K","L","M","N","P","Q","R","S",
@@ -374,7 +380,7 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
                                                          gapOpening = 9.5,
                                                          gapExtension = 0.5,
                                                          scoreOnly = TRUE), silent = TRUE);
-            if (class(pwalign) == "try-error")
+            if (inherits(pwalign,"try-error"))#220516
             {pwalign = 0;
             warning("Please email the warning to the author. Thank you!")
             }
@@ -395,24 +401,22 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
     match.type <- rep('2', length(new.ID));#181210
     data_withgn <- data.frame(data_withgn[,c(-3,-4,-5)],
                               new.ID,
+                              GN = data_withgn$GN,
                               match.type,
-                              stringsAsFactors = FALSE);#181210
+                              stringsAsFactors = FALSE);#181210 #220505 add GN
     datano1[datano1$ori.ID %in% data_withgn$ori.ID, ] <- data_withgn;#181210
     #match.type<-rep('2',length(datano1$ori.ID)); #181210
     #datano1<-data.frame(datano1[,c(-3,-4)],new.ID,match.type,stringsAsFactors = FALSE);#181210
     datano1$match.type[is.na(datano1$new.ID)] <- NA;
     datano2 <- datano1[is.na(datano1$new.ID), ];
-    if(verbose > 0) message("GN similar match is completed, match.type is 2");
-    #
+    if(verbose > 0) message(paste0("GN similar match is completed, ", length(na.omit(new.ID))," IDs are matched. Match.type is 2."))#220505
+
     data_IDmatch[is.na(data_IDmatch$new.ID), ] <- datano1;
     #3.blast match.type is 3
-    #ceshi#if(length(datano2$ori.ID)==length(data$ori.ID)){#ceshi#
+    #test#if(length(datano2$ori.ID)==length(data$ori.ID)){
     if (length(datano2$ori.ID) != 0) {
       ID <- NULL;
       data_ori.ID <- as.character(datano2$ori.ID);
-      #if("micropan" %in% rownames(installed.packages()) == FALSE)
-      #{install.packages("micropan")}
-      #suppressMessages(library("micropan"))
       if (!Alignment & Continue) { #190605
         log.fil <- file.path(out.folder, "log.txt");
         db.fil <- file.path(out.folder, "blastDB");
@@ -493,7 +497,7 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
                                                          gapOpening = 9.5,
                                                          gapExtension = 0.5,
                                                          scoreOnly = TRUE), silent = TRUE);
-            if (class(pwalign) == "try-error") {
+            if (inherits(pwalign,"try-error")) {#220516
               aa <- unlist(strsplit(unname(as.character(database1_seq[k])),"")); #200626
               aa <- aa[aa %in% c("A","C","D","E","F","G","H","I",
                                  "K","L","M","N","P","Q","R","S",
@@ -507,7 +511,7 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
                                                            gapOpening = 9.5,
                                                            gapExtension = 0.5,
                                                            scoreOnly = TRUE), silent = TRUE);
-              if (class(pwalign) == "try-error")
+              if (inherits(pwalign,"try-error"))#220516
               {pwalign = 0;
               warning("Please email the warning to the author. Thank you!")
               }
@@ -519,17 +523,29 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
       }
       if (Alignment | Continue) { #190605
         new.ID <- ID;
+        GN3 <- database1$GN[match(new.ID,database1$Uniprot.ID)];#220505 add GN
         match.type <- "3";
-        datano2 <- data.frame(datano2[,c(-3,-4)],
+        datano2 <- data.frame(datano2[,c(-3,-4,-5)],
                               new.ID,
+                              GN = GN3,
                               match.type,
-                              stringsAsFactors = FALSE);
+                              stringsAsFactors = FALSE);#220505 add GN
         #
         data_IDmatch[is.na(data_IDmatch$new.ID), ] <- datano2;
-        if (verbose > 0) message("seq blast is completed, match.type is 3")
+        if (verbose > 0) message(paste0("seq blast is completed, ", length(na.omit(new.ID))," IDs are matched. Match.type is 3.")) #220505
       } else message("match.type 3 is not run.")#190605
     }
   }
+  #220505 add message about how many ID are matched.
+  datano3 <- data_IDmatch[is.na(data_IDmatch$new.ID), ];
+  if(nrow(datano3) == 0 & verbose > 0)
+    message("ID match step is finished.\n all IDs are matched.") else if (verbose > 0) {
+      datano3$GN <- data_withgn$GN[match(datano3$ori.ID,data_withgn$ori.ID)];
+      datano3$match.type <- ""
+      data_IDmatch[is.na(data_IDmatch$new.ID), ] <- datano3;
+      message(paste0("ID match step is finished.\n", length(na.omit(data_IDmatch$new.ID))," IDs are matched. ", nrow(datano3)," IDs are not matched."))#220505
+    }
+
   data_IDmatch
 }
 
@@ -545,7 +561,7 @@ ID_match <- function(data, db1.path = NULL, db2.path = NULL,
   }
   # read fasta file
   my_fasta <- try(Biostrings::readAAStringSet(input_file), silent = TRUE); #190605
-  if(class(my_fasta) != "try-error") { #190605
+  if(!inherits(my_fasta,"try-error")) { #220516 #190605 class(my_fasta) != "try-error"
     protein_inf <- names(my_fasta);
     #seperate information based by "|"
     if (type == 1) {

@@ -8,17 +8,15 @@
 The major parameter optimization in function \code{blockwiseModules} in WGCNA package. The function will do a series of network construction by change various parameter in \code{blockwiseModules} and record the result. (it will take a long time)
 }
 \usage{
-wgcnatest(data, power = NULL, TOMType = "unsigned",
-          detectCutHeight = NULL, maxBlockSize = 5000,
+wgcnatest(data, power = NULL, maxBlockSize = 5000,
+          corType = "pearson", networkType = "unsigned",
+          TOMType = "unsigned",detectCutHeight = NULL,
           deepSplit = TRUE, minModSize = TRUE,
+          minKMEtoStay = TRUE,minCoreKME = FALSE,
+          reassignThreshold = FALSE,mergeCutHeight = FALSE,
           pamRespectsDendro = FALSE,
-          minKMEtoStay = TRUE,
-          minCoreKME = FALSE,
-          reassignThreshold = FALSE,
-          mergeCutHeight = FALSE,
-          maxModNum = 30,
-          minModNum = 8,
-          MaxMod0ratio = 0.3)
+          maxModNum = 30,minModNum = 8,MaxMod0ratio = 0.3,
+          ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -30,17 +28,25 @@ wgcnatest(data, power = NULL, TOMType = "unsigned",
   Soft-thresholding power for network construction. The default value is NULL. it will run \code{pickSoftThreshold} function in WGCNA package to pick the lowest appropriate power.
   More information can get from \code{blockwiseModules} in WGCNA package.
   }
+  \item{maxBlockSize}{
+  integer giving maximum block size for module detection.
+  More information can get from \code{blockwiseModules} in WGCNA package.
+  }
+  \item{corType}{
+  one of "pearson" and "bicor".
+  More information can get from \code{blockwiseModules} in WGCNA package.
+  }
+  \item{networkType}{
+  one of "signed hybrid", "unsigned", "signed".
+  More information can get from \code{blockwiseModules} in WGCNA package.
+  }
   \item{TOMType}{
-  one of "none", "unsigned", "signed".
+  one of "none", "unsigned", "signed","signed Nowick", "unsigned 2", "signed 2" and "signed Nowick 2"..
   More information can get from \code{blockwiseModules} in WGCNA package.
   }
   \item{detectCutHeight}{
   dendrogram cut height for module detection.
   The default value is NULL, which means it will calculate the cutheight through correlation r when p value is 0.05. When the value is larger than 0.995, it will set to detectCutHeight or 0.995.
-  More information can get from \code{blockwiseModules} in WGCNA package.
-  }
-  \item{maxBlockSize}{
-  integer giving maximum block size for module detection.
   More information can get from \code{blockwiseModules} in WGCNA package.
   }
   \item{deepSplit}{
@@ -51,10 +57,6 @@ wgcnatest(data, power = NULL, TOMType = "unsigned",
   \item{minModSize}{
   minimum module size for module detection.
   The default value is TRUE, which means the function will test 15, 20, 30, 50. If the value is FALSE, minModSize is 20. You also can setting integer value by yourself.
-  More information can get from \code{blockwiseModules} in WGCNA package.
-  }
-  \item{pamRespectsDendro}{
-  a logical value indicated that whether do pamStage or not.
   More information can get from \code{blockwiseModules} in WGCNA package.
   }
   \item{minKMEtoStay}{
@@ -77,6 +79,10 @@ wgcnatest(data, power = NULL, TOMType = "unsigned",
   The default value is FALSE, mergeCutHeight is 0.15. If the value is TRUE, which means the function will test 0.15, 0.3 and 0.45. You also can setting value by yourself.
   More information can get from \code{blockwiseModules} in WGCNA package.
   }
+  \item{pamRespectsDendro}{
+  a logical value indicated that whether do pamStage or not.
+  More information can get from \code{blockwiseModules} in WGCNA package.
+  }
   \item{maxModNum}{
   The maximum module number. If network construction make more than maxModnum of modules. The result will not record.
   }
@@ -85,6 +91,9 @@ The mininum module number. If network construction make less than minModNum of m
 }
   \item{MaxMod0ratio}{
   The maximum Mod0 protein numbers ratio in total proteins. If network construction make more than MaxMod0ratio in module 0. The result will not record.
+}
+  \item{...}{
+  Other arguments from \code{blockwiseModules} in WGCNA packag.
 }
   }
 \details{

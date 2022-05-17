@@ -1,12 +1,12 @@
-1bff2771776d7bee5c64ddebaa4aaac9 *DESCRIPTION
+f06fc81730555b982094e77581de3c3b *DESCRIPTION
 23d083fd2437840374b1120fe0bb39bd *NAMESPACE
 8320fa3452649b16410770e874d70d2c *R/DEPextract.R
-162532a9fe62980f824ca3d372e68603 *R/MaxquantDataconvert.R
-46b39065a419180b16081e0e245db082 *R/Moduleconstruction.R
+1c3d6ec95509460a36be7aa369087104 *R/MaxquantDataconvert.R
+4eabdade9b1cafad41a1a03030bd0d10 *R/Moduleconstruction.R
 27bd94cdc126262ab6157b5e48259764 *R/data.R
-d6879f5053c4bbf5a88a573f8528fb84 *R/missing_value_impute.R
+aed9e327768a0fc421989e76c6bccfa1 *R/missing_value_impute.R
 87b3a970ac32bcdca84fdd14356aef63 *R/module_enrich.R
-94245e0089e35bc5f611ba5eb63c22a4 *R/network.R
+5c591ca75e633182ef30d3a747fbf358 *R/network.R
 48072b63da0ca2fa80f46e78902bf22b *R/plot.R
 ccf26286e98e104d8ee11348d059e2c6 *README.md
 784c87fa253cdf8f4371c0f28478293a *data/Dforimpute.rda
@@ -14,7 +14,7 @@ b52bb9bb1e8ee049514cfee43765dcee *data/ProteomicData.rda
 faad2e7d7eb5f06b856185b36744c4a3 *data/Sample_ID_data.rda
 a18e58361cb1496e4dc673bc5242065e *data/imputedData.rda
 f5cc1afe6abba72c329d8e901c1cc14f *data/net.rda
-61cc0f22f38e87c435c577703c901158 *man/DDPNA-package.Rd
+b4cda6249c042444dedd0536c8e960a5 *man/DDPNA-package.Rd
 b5996540bd0a49c93a51595708e6ca35 *man/DEP_Mod_HeatMap.Rd
 ecfbafeb37e40e56c0cc44d62bef47ab *man/DEP_Mod_net_plot.Rd
 6a642433600535dfe537d923555f705a *man/DEPsets.Rd
@@ -26,7 +26,7 @@ d8f4efb560683e55fbf7d729bab5a361 *man/MaxQprotein.Rd
 20b5ccb1354c40e3625c25c4093511e6 *man/MaxquantDataconvert.Rd
 0eff552726337b5bf6c741b04833851f *man/Module_Enrich.Rd
 0e51cfbf851ef28f0335001de75fcc58 *man/Module_inf.Rd
-af022488d41966f702dfae906bce0638 *man/P.G.extract.Rd
+9887ef3e0041a9968c8e778c88013fb0 *man/P.G.extract.Rd
 9a81cadf2498a76ec95f1be232ba4e55 *man/ProteomicData.Rd
 6c4bc28f4cfb53d0b34827149765d9eb *man/Sample_ID_data.Rd
 20c6a3bda51bed2b14aadda78c5959cf *man/SoftThresholdScaleGraph.Rd
@@ -44,4 +44,4 @@ cddb79cdd7ebee3f05142176e813946a *man/missing_value_impute.Rd
 b5d76f8add5c230377b7dc16339e1b08 *man/net.Rd
 3be378fc0b1e1549ae871e672bf5be6f *man/rename_dupnewID.Rd
 b7f747acb5acabe851b15726fc39f75a *man/single_mod_enrichplot.Rd
-157c0ed373c7474b1c1527f329df48b6 *man/wgcnatest.Rd
+b3dca90a4c0b2d8b5b29bcaf5aed3585 *man/wgcnatest.Rd

@@ -202,7 +202,7 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                               node.sizeProp = 13, label.sizeProp = 13,
                               label.scaleFactor = 10,
                               layout = "kamada.kawai"), silent = TRUE)
-    if (class(test) == "try-error")
+    if (inherits(test,"try-error") ) #220516 class(test) == "try-error"
       stop("plot_subgraph is error. Please check ModNet.")
     modulegene = ModNet$degreeStat$gene; #200802
     hub = ModNet$hub;
@@ -246,7 +246,7 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
                               node.sizeProp = 13, label.sizeProp = 13,
                               label.scaleFactor = 10,
                               layout = "kamada.kawai"), silent = TRUE)
-    if (class(test) == "try-error")
+    if (inherits(test,"try-error"))#220516
       stop("plot_subgraph is error. Please check ModNet and IDsets.")
     if (plot) {
       pic <- plot_subgraph(module = ModNet$degreeStat$gene,
@@ -360,7 +360,7 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
           ModNet <- try(getmoduleHub(data, moduleinf, "a",
                                      coln = "new.ID",
                                      adjustp = FALSE),silent = TRUE);
-          if (class(ModNet) == "try-error")
+          if (inherits(ModNet,"try-error"))#220516 class(ModNet) == "try-error"
             stop ("data or module have some problem and cannot run getmoduleHub.")
           node.features<- plot_subgraph(module = ModNet$degreeStat$gene,
                                         hub = ModNet$hub, PFN = ModNet$PMFG,
@@ -423,7 +423,7 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
           ModNet <- try(getmoduleHub(data, moduleinf, "a",
                                      coln = "new.ID",
                                      adjustp = FALSE),silent = TRUE);
-          if (class(ModNet) == "try-error")
+          if (inherits(ModNet,"try-error"))#220516
             stop ("data or module have some problem and cannot run getmoduleHub.");
           if (FALSE) {
             node.features<- plot_subgraph(module = ModNet$degreeStat$gene,

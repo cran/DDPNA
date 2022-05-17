@@ -9,7 +9,8 @@ uniprot ID, ENTRYNAME and status information extract.(only fit for 'MaxQuant' da
 }
 \usage{
 P.G.extract(inf, ncol = 4, justID = FALSE,
-            status1 = FALSE, ENTRY1 = FALSE, verbose = 0)
+            status1 = TRUE, ENTRY1 = TRUE, ID1 = TRUE,
+            sp1 = TRUE, onlysp = FALSE, verbose = 0)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -27,6 +28,15 @@ P.G.extract(inf, ncol = 4, justID = FALSE,
 }
   \item{ENTRY1}{
   a logical value indicated whether extract the first ID ENTRY NAME.
+}
+  \item{ID1}{
+  a logical value indicated whether extract the first ID UNIPROT ACCESSION.
+}
+  \item{sp1}{
+  a logical value indicated whether extract the first sp ID as the new first ID.
+}
+  \item{onlysp}{
+  a logical value indicated whether only keep sp ID in the second or later ID result.
 }
   \item{verbose}{
   integer level of verbosity. Zero means silent, 1 means have Diagnostic Messages.
