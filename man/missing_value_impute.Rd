@@ -59,7 +59,7 @@ Data_impute(data, inf = "inf", intensity = "LFQ", miss.value = NA,
   a numberic value indicating the threshold to judge the outlier sample. The default \code{2} means 0.95 confidence intervals
   }
   \item{distmethod}{
-  The distance measure to be used. This must be (an abbreviation of) one of the strings "\code{manhattan}","\code{euclidean}", "\code{canberra}","\code{correlation}"
+  The distance measure to be used. This must be (an abbreviation of) one of the strings "\code{manhattan}","\code{euclidean}", "\code{canberra}","\code{correlation}","\code{bicor}"
   }
   \item{A.IAC}{
   a logical value indicated whether decreasing \code{correlation} variance.

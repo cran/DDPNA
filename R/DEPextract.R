@@ -307,7 +307,7 @@ changedID <- function(relative_value, group, vs.set2, vs.set1 = "WT",
       TY <- as.numeric(relative_value[i,Ttesty]);
       samevalue <- c(length(table(TX)) > 1, length(table(TY)) > 1)
       if (sum(!is.na(TX)) > 2 & sum(!is.na(TY)) > 2 & any(samevalue)){
-        Ttest <- t.test(TX, TY);
+        Ttest <- t.test(TX, TY,...);
         t.test <- c(t.test, Ttest$p.value)
       } else t.test <- c(t.test, 2)
     }
@@ -347,7 +347,7 @@ changedID <- function(relative_value, group, vs.set2, vs.set1 = "WT",
 #190715 fix when ID have "-"
 dataStatInf <- function(prodata,  group, intensity = "intensity", Egrp = NULL, Cgrp = "ctl",
                         meanmethod = "mean", datatype = c("none", "log2"),
-                        anova = TRUE, T.test = c("pairwise","student", "none"),
+                        anova = TRUE, T.test = c("pairwise","two-sample", "none"),
                         Aadj = "none", Tadj = "none", cutoff = FALSE,
                         ... ) {
   if (!intensity %in% names(prodata))
@@ -355,7 +355,7 @@ dataStatInf <- function(prodata,  group, intensity = "intensity", Egrp = NULL, C
                intensity, "data.frame in prodata."))
   data <- prodata[[intensity]];
   rownames(data) <- prodata$inf$ori.ID
-  StudentT <- function(relative_value, group, Padj = p.adjust.methods) {
+  StudentT <- function(relative_value, group, Padj = p.adjust.methods,...) {
     Ttestx <- which(group == levels(as.factor(group))[1])
     Ttesty <- which(group == levels(as.factor(group))[2])
     ttest <- NULL;
@@ -364,7 +364,7 @@ dataStatInf <- function(prodata,  group, intensity = "intensity", Egrp = NULL, C
       TY <- as.numeric(relative_value[i,Ttesty]);
       samevalue <- c(length(table(TX)) > 1, length(table(TY)) > 1)
       if (sum(!is.na(TX)) > 2 & sum(!is.na(TY)) > 2 & any(samevalue)){
-        Ttest <- t.test(TX, TY);
+        Ttest <- t.test(TX, TY,...);
         ttest <- c(ttest, Ttest$p.value)
       } else ttest <- c(ttest, 2)
     }
@@ -374,7 +374,7 @@ dataStatInf <- function(prodata,  group, intensity = "intensity", Egrp = NULL, C
   }
   datatype <- match.arg(datatype, c("none", "log2"));
   meanmethod <- match.arg(meanmethod, c("mean", "median"));
-  T.test <- match.arg(T.test, c("pairwise","student", "none"));
+  T.test <- match.arg(T.test, c("pairwise","two-sample", "none"));
   Aadj <- match.arg(Aadj, p.adjust.methods);
   Tadj <- match.arg(Tadj, p.adjust.methods);
   if (isTRUE(cutoff)) cutoff = 0.05;
@@ -383,7 +383,7 @@ dataStatInf <- function(prodata,  group, intensity = "intensity", Egrp = NULL, C
   groups <- levels(as.factor(group));
   if (!Cgrp %in% groups)
     stop ("wrong Cgrp or group");
-  if (T.test == "student") {
+  if (T.test == "two-sample") {
     if ( is.null(Egrp))
       Egrp <- groups[groups != Cgrp] else if (!Egrp %in% groups)
         stop ("wrong Egrp");
@@ -416,12 +416,12 @@ dataStatInf <- function(prodata,  group, intensity = "intensity", Egrp = NULL, C
     ttestP <- P;
     if (cutoff) ttestP[ttestP > cutoff] <- NA;
   }
-  if (T.test == "student") {
+  if (T.test == "two-sample") {
     Ttestx <- which(group == Cgrp);
     Ttesty <- which(group == Egrp);
     dataforTtest <- data[, c(Ttestx, Ttesty)];
     #ttestP <- StudentT(dataforTtest, group, Padj = "none");
-    ttestP <- StudentT(dataforTtest, group[c(Ttestx, Ttesty)], Padj = "none");#190715
+    ttestP <- StudentT(dataforTtest, group[c(Ttestx, Ttesty)], Padj = "none",...);#190715
     ttestPadj <- p.adjust(ttestP, method = Tadj);
     ttestP <- cbind(ttestP =ttestP,
                     ttestPadj = if(Tadj != "none") ttestPadj);

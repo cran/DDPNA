@@ -11,7 +11,7 @@ summrize the statistics information of data
 dataStatInf(prodata, group, intensity = "intensity",
             Egrp = NULL, Cgrp = "ctl",
             meanmethod = "mean", datatype = c("none", "log2"),
-            anova = TRUE, T.test = c("pairwise", "student", "none"),
+            anova = TRUE, T.test = c("pairwise", "two-sample", "none"),
             Aadj = "none", Tadj = "none", cutoff = FALSE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
@@ -48,8 +48,8 @@ dataStatInf(prodata, group, intensity = "intensity",
   \item{T.test}{
   T.test method. "none" means not running t.test.
   "pairwise" means calculate pairwise comparisons between group levels with corrections for multiple testing
-  "student" means student t test.
-  This must be (an abbreviation of) one of the strings "\code{pairwise}","\code{student} and "\code{none}"".
+  "two-sample" means student t test.
+  This must be (an abbreviation of) one of the strings "\code{pairwise}","\code{two-sample} and "\code{none}"".
 }
   \item{Aadj}{
   anova P value adjust methods. it can seen in \code{p.adjust.methods}.

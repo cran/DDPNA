@@ -12,7 +12,7 @@ SoftThresholdScaleGraph(data,
                         xlab = "Soft Threshold (power)",
                         ylab = "Scale Free Topology Model Fit, signed R^2",
                         main = "Scale independence",
-                        filename = NULL)
+                        filename = NULL,...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -31,6 +31,9 @@ SoftThresholdScaleGraph(data,
   \item{filename}{
   the filename of plot. The default value is \code{NULL} which means no file saving.
   The plot will be saved to "plot" folder and saved in pdf format.
+  }
+ \item{\dots}{
+  Other arguments in function \code{pickSoftThreshold} in WGCNA package.
   }
 }
 \details{

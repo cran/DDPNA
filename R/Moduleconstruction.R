@@ -1,14 +1,14 @@
 #draw graph of soft Threshold
-
+#220604 add ... for setting pickSoftThreshold parameter
 SoftThresholdScaleGraph <- function(data,
                                     xlab = "Soft Threshold (power)",
                                     ylab = "Scale Free Topology Model Fit, signed R^2",
                                     main = "Scale independence",
-                                    filename = NULL){
+                                    filename = NULL,...){#220604
   if (!requireNamespace("WGCNA", quietly = TRUE)) {
     stop ("WGCNA package is needed. Please install it.",
           call. = FALSE)}
-  sft <- WGCNA::pickSoftThreshold(data);
+  sft <- WGCNA::pickSoftThreshold(data,...);#220604
   powers <- c(c(1:10), seq(from = 12, to = 20, by = 2));
   if (is.character(filename) & length(filename) == 1){
     #if (!dir.exists("plot")) dir.create("plot");
@@ -31,6 +31,8 @@ SoftThresholdScaleGraph <- function(data,
 
 #190607 add the question whether load WGCNA package
 #220513 add corType and networkType and ... parameter
+#220526 report detectcutHeight, because some situation will change it.
+#230131 add error info when no result in wgcnatest
 wgcnatest <- function(data, power = NULL, maxBlockSize = 5000,
                       corType = "pearson", networkType = "unsigned",
                       TOMType = "unsigned",
@@ -169,6 +171,7 @@ wgcnatest <- function(data, power = NULL, maxBlockSize = 5000,
       }
     }
   }
+  if(is.null(ModNum)) stop("No network satisfy the parameter.") #230131 add error info
   rownames(ModNum) <- 0:maxModNum
   ModNum <- rbind(deepSplit = if(!is.null(deepsplit)) deepsplit,
                   minModuleSize = if(!is.null(size)) size,
@@ -179,6 +182,7 @@ wgcnatest <- function(data, power = NULL, maxBlockSize = 5000,
                   ModNum)
   filetoremove <- paste("blockwisetom-block.", 1:block, ".RData", sep="")
   file.remove(filetoremove)
+  message(paste0("-- detectCutHeight is setting to ", detectCutHeight," --"))#220526
   ModNum
 }
 

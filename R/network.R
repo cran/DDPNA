@@ -5,6 +5,7 @@
 #190612 fix the error when PFG is not the whole mod.name
 #200327 fix the bug occur in 190612 added function.
 #20200610 add correlaton adjust P
+#20240313 remove unused code
 getmoduleHub <- function(data, module, mod_num, coln = "new.ID",
                          cor.sig = 0.05, cor.r = 0, cor.adj="none",
                          adjustp = TRUE, hub.p = 0.05){
@@ -345,129 +346,55 @@ DEP_Mod_net_plot <- function(ModNet, IDsets = NULL,
       removedHub <- as.character(node.features$id[node.features$node.shape == "hub" &
                                                     node.features$node.stat == "NA"]);
       iter = 1;
-      if (FALSE) {
-        while (length(removedHub) > 0) {
-          if (iter > iteration ) break;
-          el <- as_data_frame(ModNet$PMFG);
-          #el2 <- el[el[,1] %in% markedID | el[,2]  %in% markedID, ]
+      while (iter < 1000) {
+        if (iter > iteration ) break;
+        el <- as_data_frame(ModNet$PMFG);
+        previous <- nrow(el);
+        if (length(removedHub) > 0) {
           el <- el[!(el[,1] %in% removedHub | el[,2]  %in% removedHub), ];
-          if (BranchCut) el <- el[el$from %in% markedID | el$to %in% markedID, ];
-          modulegene <- c(as.character(el$from),as.character(el$to), markedID);
-          modulegene <- as.factor(modulegene);
-          modulegene <- levels(modulegene);
-          moduleinf <- module;
-          moduleinf$moduleNum[moduleinf$new.ID %in% modulegene] <- "a";
-          ModNet <- try(getmoduleHub(data, moduleinf, "a",
-                                     coln = "new.ID",
-                                     adjustp = FALSE),silent = TRUE);
-          if (inherits(ModNet,"try-error"))#220516 class(ModNet) == "try-error"
-            stop ("data or module have some problem and cannot run getmoduleHub.")
-          node.features<- plot_subgraph(module = ModNet$degreeStat$gene,
-                                        hub = ModNet$hub, PFN = ModNet$PMFG,
-                                        node.default.color = "grey",
-                                        gene.set = IDsets$gene.set,
-                                        color.code = IDsets$color.code, show.legend = TRUE,
-                                        label.hubs.only = TRUE,
-                                        hubLabel.col = "black", hubLabel.sizeProp = 1,
-                                        show.topn.hubs = 10,
-                                        node.sizeProp = 13, label.sizeProp = 13,
-                                        label.scaleFactor = 10,
-                                        layout = "kamada.kawai")$node.features;
-          removedHub <- as.character(node.features$id[node.features$node.shape == "hub" &
-                                                        node.features$node.stat == "NA"]);
-          if (plot) {
-            pic <- plot_subgraph(module = ModNet$degreeStat$gene,
-                                 hub = ModNet$hub, PFN = ModNet$PMFG,
-                                 node.default.color = node.default.color,
-                                 gene.set = IDsets$gene.set,
-                                 color.code = IDsets$color.code, show.legend = TRUE,
-                                 label.hubs.only = label.hubs.only,
-                                 hubLabel.col = hubLabel.col,
-                                 hubLabel.sizeProp = 1,
-                                 show.topn.hubs = 10,
-                                 node.sizeProp = 13, label.sizeProp = 13,
-                                 label.scaleFactor = 10,
-                                 layout = "kamada.kawai");
-            if (is.character(filename) & length(filename) == 1) {
-              #if (!dir.exists("plot")) dir.create("plot")
-              #filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter, ".", filetype)
-              filename2 = paste0("DEPModNet_", filename,"_",iter, ".", filetype) #200703
-              ggsave(pic$pnet, filename = filename2, ...)
-              unlink(pic$pnet)
-            }
-            else print(pic$pnet)
-          }
-          iter <- iter + 1;
+          after_rmhub <- nrow(el);
         }
-      }
-      if (TRUE) {
-        while (iter < 1000) {
-          if (iter > iteration ) break;
-          el <- as_data_frame(ModNet$PMFG);
-          previous <- nrow(el);
-          if (length(removedHub) > 0) {
-            el <- el[!(el[,1] %in% removedHub | el[,2]  %in% removedHub), ];
-            after_rmhub <- nrow(el);
+        if (BranchCut) el <- el[el$from %in% markedID | el$to %in% markedID, ];
+        after_all <- nrow(el);
+        if (previous == after_all) break;
+        if (iter == 1) modulegene2 = ModNet$degreeStat$gene;
+        if (iter != 1) modulegene2 = modulegene;
+        modulegene <- c(as.character(el$from),as.character(el$to), markedID);
+        modulegene <- as.factor(modulegene);
+        modulegene <- levels(modulegene);
+        if (length(modulegene) == length(modulegene2)) break;
+        moduleinf <- module;
+        moduleinf$moduleNum[moduleinf$new.ID %in% modulegene] <- "a";
+        ModNet <- try(getmoduleHub(data, moduleinf, "a",
+                                   coln = "new.ID",
+                                   adjustp = FALSE),silent = TRUE);
+        if (inherits(ModNet,"try-error"))#220516
+          stop ("data or module have some problem and cannot run getmoduleHub.");
+        removedHub <- ModNet$hub[!ModNet$hub %in% markedID];
+        if (plot) {
+          pic <- plot_subgraph(module = ModNet$degreeStat$gene,
+                               hub = ModNet$hub, PFN = ModNet$PMFG,
+                               node.default.color = node.default.color,
+                               gene.set = IDsets$gene.set,
+                               color.code = IDsets$color.code, show.legend = TRUE,
+                               label.hubs.only = label.hubs.only,
+                               hubLabel.col = hubLabel.col,
+                               hubLabel.sizeProp = 1,
+                               show.topn.hubs = 10,
+                               node.sizeProp = 13, label.sizeProp = 13,
+                               label.scaleFactor = 10,
+                               layout = "kamada.kawai");
+          if (is.character(filename) & length(filename) == 1) {
+            #if (!dir.exists("plot")) dir.create("plot")
+            #filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter, ".", filetype)
+            filename2 = paste0("DEPModNet_", filename,"_",iter, ".", filetype) #200703
+            ggsave(pic$pnet, filename = filename2, ...)
+            unlink(pic$pnet)
           }
-          if (BranchCut) el <- el[el$from %in% markedID | el$to %in% markedID, ];
-          after_all <- nrow(el);
-          if (previous == after_all) break;
-          if (iter == 1) modulegene2 = ModNet$degreeStat$gene;
-          if (iter != 1) modulegene2 = modulegene;
-          modulegene <- c(as.character(el$from),as.character(el$to), markedID);
-          modulegene <- as.factor(modulegene);
-          modulegene <- levels(modulegene);
-          if (length(modulegene) == length(modulegene2)) break;
-          moduleinf <- module;
-          moduleinf$moduleNum[moduleinf$new.ID %in% modulegene] <- "a";
-          ModNet <- try(getmoduleHub(data, moduleinf, "a",
-                                     coln = "new.ID",
-                                     adjustp = FALSE),silent = TRUE);
-          if (inherits(ModNet,"try-error"))#220516
-            stop ("data or module have some problem and cannot run getmoduleHub.");
-          if (FALSE) {
-            node.features<- plot_subgraph(module = ModNet$degreeStat$gene,
-                                          hub = ModNet$hub, PFN = ModNet$PMFG,
-                                          node.default.color = "grey",
-                                          gene.set = IDsets$gene.set,
-                                          color.code = IDsets$color.code, show.legend = TRUE,
-                                          label.hubs.only = TRUE,
-                                          hubLabel.col = "black", hubLabel.sizeProp = 1,
-                                          show.topn.hubs = 10,
-                                          node.sizeProp = 13, label.sizeProp = 13,
-                                          label.scaleFactor = 10,
-                                          layout = "kamada.kawai")$node.features;
-            removedHub <- as.character(node.features$id[node.features$node.shape == "hub" &
-                                                          node.features$node.stat == "NA"]);
-          }
-          #cat(paste(" - # of genes:", length(modulegene), "\n"))
-          #cat(paste(" - # of hubs:", length(ModNet$hub), "\n"))
-          removedHub <- ModNet$hub[!ModNet$hub %in% markedID];
-          if (plot) {
-            pic <- plot_subgraph(module = ModNet$degreeStat$gene,
-                                 hub = ModNet$hub, PFN = ModNet$PMFG,
-                                 node.default.color = node.default.color,
-                                 gene.set = IDsets$gene.set,
-                                 color.code = IDsets$color.code, show.legend = TRUE,
-                                 label.hubs.only = label.hubs.only,
-                                 hubLabel.col = hubLabel.col,
-                                 hubLabel.sizeProp = 1,
-                                 show.topn.hubs = 10,
-                                 node.sizeProp = 13, label.sizeProp = 13,
-                                 label.scaleFactor = 10,
-                                 layout = "kamada.kawai");
-            if (is.character(filename) & length(filename) == 1) {
-              #if (!dir.exists("plot")) dir.create("plot")
-              #filename2 = paste0("plot/DEP_Mod_net", filename, "_",iter, ".", filetype)
-              filename2 = paste0("DEPModNet_", filename,"_",iter, ".", filetype) #200703
-              ggsave(pic$pnet, filename = filename2, ...)
-              unlink(pic$pnet)
-            }
-            else print(pic$pnet)
-          }
-          iter <- iter + 1;
-          if ( iter == 1000) warning("It's already run 1000 cycle, but no final result. Please email the author.")
+          else print(pic$pnet)
         }
+        iter <- iter + 1;
+        if ( iter == 1000) warning("It's already run 1000 cycle, but no final result. Please email the author.")
       }
       if (OnlyPlotLast) {
         pic <- plot_subgraph(module = ModNet$degreeStat$gene,

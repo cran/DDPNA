@@ -65,7 +65,7 @@ Default node colors for those that do not intersect with signatures in gene.set.
 Label color for hubs.
 }
   \item{\dots}{
-%%     ~~Describe \code{\dots} here~~
+additional \code{ggsave} parameter
 }
 }
 

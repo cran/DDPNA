@@ -14,17 +14,19 @@ The function \code{Data_impute} need \pkg{impute} package from Bioconductor, the
 \tabular{ll}{
 Package: \tab DDPNA\cr
 Type: \tab Package\cr
-Version: \tab 0.3.1\cr
+Version: \tab 0.3.3\cr
 Creat Data: \tab 2019-03-18\cr
-Date: \tab 2022-05-16\cr
+Date: \tab 2024-03-13\cr
 License: \tab GPL (>= 2)\cr
 }
-~~ An overview of how to use the package, including the most important functions ~~
+This package is used for construct core component sets associated co-expression network.
+It offered a preprocess function and core component sets subnetwork construct.
+Preprocess function can process proteomics data included data extract, outlier removal and impute. Some functions are fit for other omics data.
 }
 \author{
 Kefu Liu
 
-Maintainer: Kefu Liu <lkf1013@gmail.com>
+Maintainer: Kefu Liu <liukefu19@163.com>
 }
 
 
